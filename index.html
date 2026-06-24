@@ -6,11 +6,10 @@
     <meta name="description" content="nemuran.me - 空气喵的小站">
     <meta name="theme-color" content="#333">
     <link rel="preload" href="background.webp" as="image">
-    <link rel="icon" href="imgs/favicon_io/favicon.ico" type="image/x-icon">
-    <link rel="shortcut icon" href="imgs/favicon_io/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="imgs/favicon_io/favicon.svg" type="image/svg+xml">
+    <link rel="shortcut icon" href="imgs/favicon_io/favicon.svg" type="image/svg+xml">
     <title>nemuran.me</title>
     <link rel="stylesheet" href="file/dock tool/dock.css">
-    <link rel="stylesheet" href="file/aplayer/APlayer.min.css">
     <style>
         * {
             margin: 0;
@@ -126,74 +125,127 @@
         }
 
         .music-card {
-            padding: 0; max-width: 400px;
+            padding: 1.2rem; max-width: 360px;
             animation-delay: 0.6s;
             position: relative; z-index:1;
             overflow: visible;
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-            backdrop-filter: none !important;
-            -webkit-backdrop-filter: none !important;
         }
-        #aplayer .aplayer {
-            background: rgba(255,255,255,0.08) !important;
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
+        .music-top {
+            display: flex; gap: 0.8rem; align-items: center; margin-bottom: 0.6rem;
+        }
+        .music-cover {
+            width: 52px; height: 52px; border-radius: 50%; overflow: hidden;
+            flex-shrink: 0; border: 2px solid rgba(255,255,255,0.15);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        }
+        .music-cover img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+        .music-meta { flex: 1; min-width: 0; }
+        .music-tag {
+            display: inline-block; font-size: 0.65rem; color: rgba(255,255,255,0.6);
+            border: 1px solid rgba(255,255,255,0.2); border-radius: 4px;
+            padding: 2px 8px; margin-bottom: 0.4rem; letter-spacing: 1px;
+        }
+        .music-title {
+            font-size: 1rem; font-weight: 500; color: rgba(255,255,255,0.95);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .music-artist {
+            font-size: 0.75rem; color: rgba(255,255,255,0.6); margin-top: 0.15rem;
+        }
+        .lyric-container {
+            height: 48px; overflow: hidden; position: relative;
+            margin-bottom: 0.5rem; margin-top: -0.2rem; text-align: center;
+            mask-image: linear-gradient(transparent, black 15%, black 85%, transparent);
+            -webkit-mask-image: linear-gradient(transparent, black 15%, black 85%, transparent);
+        }
+        .lyric-inner {
+            transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+        }
+        .lyric-line {
+            font-size: 0.75rem; color: rgba(255,255,255,0.35);
+            line-height: 1.6; height: 1.6em;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            transition: all 0.35s ease;
+        }
+        .lyric-line.active {
+            color: rgba(255,255,255,0.95); font-size: 0.8rem;
+        }
+        .lyric-placeholder {
+            font-size: 0.75rem; color: rgba(255,255,255,0.35);
+            line-height: 3em;
+        }
+        .music-progress {
+            display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem;
+        }
+        .music-progress .time {
+            font-size: 0.65rem; color: rgba(255,255,255,0.5);
+            min-width: 28px; font-variant-numeric: tabular-nums;
+        }
+        .progress-bar {
+            flex: 1; height: 3px; background: rgba(255,255,255,0.15);
+            border-radius: 2px; cursor: pointer; position: relative;
+        }
+        .progress-fill {
+            height: 100%; background: rgba(255,255,255,0.7); border-radius: 2px;
+            width: 0%; transition: width 0.1s linear;
+        }
+        .music-controls {
+            display: flex; align-items: center; justify-content: center; gap: 1.2rem;
+            position: relative;
+        }
+        .platform-btn {
+            position: absolute; right: 0; bottom: -0.3rem;
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 20px; padding: 0.25rem 0.6rem;
+            color: rgba(255,255,255,0.6); font-size: 0.65rem;
+            cursor: pointer; transition: all 0.3s;
+            display: flex; align-items: center; gap: 0.25rem;
+        }
+        .platform-btn:hover { background: rgba(255,255,255,0.18); color: rgba(255,255,255,0.9); }
+        .platform-menu {
+            position: absolute; right: 0; bottom: 2.5rem;
+            background: rgba(20,20,35,0.85);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 16px !important;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.1);
-            margin: 0 !important;
-            overflow: hidden;
+            border-radius: 12px; padding: 0.4rem;
+            min-width: 150px; opacity: 0;
+            transform: translateY(8px); pointer-events: none;
+            transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+            z-index: 10;
         }
-        #aplayer .aplayer-info {
-            background: transparent !important;
+        .platform-menu.active {
+            opacity: 1; transform: translateY(0); pointer-events: auto;
         }
-        #aplayer .aplayer .aplayer-music {
-            color: rgba(255,255,255,0.95) !important;
+        .platform-item {
+            display: flex; align-items: center; gap: 0.5rem;
+            padding: 0.45rem 0.7rem; border-radius: 8px;
+            color: rgba(255,255,255,0.75); font-size: 0.75rem;
+            cursor: pointer; transition: all 0.2s;
         }
-        #aplayer .aplayer .aplayer-music .aplayer-author {
-            color: rgba(255,255,255,0.6) !important;
+        .platform-item:hover {
+            background: rgba(255,255,255,0.1); color: #fff;
         }
-        #aplayer .aplayer .aplayer-time {
-            color: rgba(255,255,255,0.6) !important;
+        .platform-item .icon { font-size: 0.9rem; }
+        .ctrl-btn {
+            background: none; border: none; color: rgba(255,255,255,0.7);
+            cursor: pointer; font-size: 1rem; padding: 0.2rem;
+            transition: all 0.3s;
         }
-        #aplayer .aplayer .aplayer-bar {
-            background: rgba(255,255,255,0.2) !important;
+        .ctrl-btn:hover { color: rgba(255,255,255,1); transform: scale(1.1); }
+        .play-btn {
+            width: 38px; height: 38px; border-radius: 50%; border: none;
+            background: linear-gradient(135deg, rgba(138,180,248,0.6), rgba(167,139,250,0.6));
+            color: #fff; font-size: 1rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 20px rgba(138,180,248,0.3);
+            transition: all 0.3s;
+            line-height: 1;
         }
-        #aplayer .aplayer .aplayer-loaded {
-            background: rgba(255,255,255,0.3) !important;
-        }
-        #aplayer .aplayer .aplayer-played {
-            background: rgba(138,180,248,0.7) !important;
-        }
-        #aplayer .aplayer .aplayer-thumb {
-            background: rgba(138,180,248,0.9) !important;
-        }
-        #aplayer .aplayer .aplayer-icon path {
-            fill: rgba(255,255,255,0.8) !important;
-        }
-        #aplayer .aplayer .aplayer-icon:hover path {
-            fill: rgba(255,255,255,1) !important;
-        }
-        #aplayer .aplayer .aplayer-volume-bar {
-            background: rgba(255,255,255,0.2) !important;
-        }
-        #aplayer .aplayer .aplayer-volume {
-            background: rgba(255,255,255,0.7) !important;
-        }
-        #aplayer .aplayer .aplayer-list ol li {
-            color: rgba(255,255,255,0.8) !important;
-            border-top-color: rgba(255,255,255,0.08) !important;
-        }
-        #aplayer .aplayer .aplayer-list ol li:hover {
-            background: rgba(255,255,255,0.08) !important;
-        }
-        #aplayer .aplayer .aplayer-list ol li.aplayer-list-light {
-            background: rgba(138,180,248,0.2) !important;
-        }
-        #aplayer .aplayer .aplayer-list ol li.aplayer-list-light .aplayer-list-cur {
-            background: rgba(138,180,248,0.8) !important;
+        .play-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 28px rgba(138,180,248,0.5);
         }
 
         .settings-btn {
@@ -453,8 +505,43 @@
         <h3>关于本站</h3>
         <p>由 空气喵 创建的网站</p>
     </div>
-    <div class="glass-card music-card" style="padding:0;background:transparent;border:none;box-shadow:none;">
-        <div id="aplayer"></div>
+    <div class="glass-card music-card">
+        <div class="music-top">
+            <div class="music-cover">
+                <img id="coverImg" alt="封面">
+            </div>
+            <div class="music-meta">
+                <div class="music-title" id="musicTitle">未播放</div>
+                <div class="music-artist" id="musicArtist">-</div>
+            </div>
+        </div>
+        <div class="lyric-container" id="lyricContainer">
+            <div class="lyric-inner" id="lyricInner">
+                <div class="lyric-placeholder">暂无歌词</div>
+            </div>
+        </div>
+        <div class="music-progress">
+            <span class="time" id="currentTime">00:00</span>
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <span class="time" id="duration">00:00</span>
+        </div>
+        <div class="music-controls">
+            <button class="ctrl-btn" id="prevBtn">⏮</button>
+            <button class="play-btn" id="playBtn">▶</button>
+            <button class="ctrl-btn" id="nextBtn">⏭</button>
+            <button class="platform-btn" id="platformBtn">♫ 源</button>
+            <div class="platform-menu" id="platformMenu">
+                <div class="platform-item" data-platform="netease"><span class="icon">🎵</span>网易云音乐</div>
+                <div class="platform-item" data-platform="qq"><span class="icon">🎵</span>QQ音乐</div>
+                <div class="platform-item" data-platform="bilibili"><span class="icon">📺</span>Bilibili</div>
+                <div class="platform-item" data-platform="local"><span class="icon">💾</span>本地播放</div>
+            </div>
+        </div>
+        <audio id="audio" preload="auto">
+            <source src="file/music/music.mp3" type="audio/mpeg">
+        </audio>
     </div>
 </main>
 
@@ -487,7 +574,7 @@
     </div>
 </div>
 
-    <script src="file/aplayer/APlayer.min.js"></script>
+    <script src="file/js/jsmediatags.min.js"></script>
     <script src="file/dock tool/dock.js"></script>
     <script>
     const clock = document.getElementById('clock');
@@ -510,74 +597,181 @@
     }
     updateDateTime();
 
-    // Music Player - Aplayer
-    let musicConfig = {
+    // Music Player
+    const audio = document.getElementById('audio');
+    const playBtn = document.getElementById('playBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const currentTimeEl = document.getElementById('currentTime');
+    const durationEl = document.getElementById('duration');
+    const progressBar = document.getElementById('progressBar');
+    const progressFill = document.getElementById('progressFill');
+    const platformBtn = document.getElementById('platformBtn');
+    const platformMenu = document.getElementById('platformMenu');
+
+    const musicConfig = {
+        title: '命に嫌われている',
+        artist: 'カンザキイオリ',
         platforms: {
             netease: 'https://music.163.com/#/song?id=1974443814',
             qq: 'https://y.qq.com/n/ryqq/songDetail/001R1a2x3z6WYa',
             bilibili: 'https://www.bilibili.com/video/BV1Mh411s7ZD'
-        },
-        playlist: [
-            { name: '命に嫌われている', artist: 'カンザキイオリ', url: 'file/music/music.mp3', cover: '', lrc: 'file/music/lyrics.lrc' }
-        ]
+        }
     };
 
-    let ap = null;
+    document.getElementById('musicTitle').textContent = musicConfig.title;
+    document.getElementById('musicArtist').textContent = musicConfig.artist;
 
-    function initAplayer(playlist) {
-        const container = document.getElementById('aplayer');
-        container.innerHTML = '';
-        if (ap) { ap.destroy(); ap = null; }
-        if (!playlist || playlist.length === 0) return;
-        ap = new APlayer({
-            container: container,
-            mini: false,
-            autoplay: false,
-            lrcType: 3,
-            mutex: true,
-            preload: 'auto',
-            volume: 0.7,
-            audio: playlist.map(t => ({
-                name: t.name,
-                artist: t.artist,
-                url: t.url,
-                cover: t.cover || '',
-                lrc: t.lrc || ''
-            }))
-        });
+    // Lyrics
+    const lyricInner = document.getElementById('lyricInner');
+    const lyricContainer = document.getElementById('lyricContainer');
+    let lyrics = [];
+    let currentLyricIndex = -1;
+
+    function parseLRC(text) {
+        const lines = text.split('\n');
+        const result = [];
+        const regex = /\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/;
+        for (const line of lines) {
+            const match = line.match(regex);
+            if (match) {
+                const min = parseInt(match[1]);
+                const sec = parseInt(match[2]);
+                const ms = parseInt(match[3].padEnd(3, '0'));
+                const time = min * 60 + sec + ms / 1000;
+                const text = match[4].trim();
+                if (text) result.push({ time, text });
+            }
+        }
+        return result.sort((a, b) => a.time - b.time);
     }
+
+    function renderLyrics() {
+        if (lyrics.length === 0) {
+            lyricInner.innerHTML = '<div class="lyric-placeholder">暂无歌词</div>';
+            return;
+        }
+        lyricInner.innerHTML = lyrics.map((l, i) =>
+            `<div class="lyric-line" data-index="${i}">${l.text}</div>`
+        ).join('');
+    }
+
+    function updateLyric() {
+        if (lyrics.length === 0) return;
+        const ct = audio.currentTime;
+        let idx = -1;
+        for (let i = lyrics.length - 1; i >= 0; i--) {
+            if (ct >= lyrics[i].time) { idx = i; break; }
+        }
+        if (idx !== currentLyricIndex) {
+            currentLyricIndex = idx;
+            document.querySelectorAll('.lyric-line').forEach((el, i) => {
+                el.classList.toggle('active', i === idx);
+            });
+            if (idx >= 0) {
+                const lineH = 28;
+                const offset = -idx * lineH + lyricContainer.clientHeight / 2 - lineH / 2;
+                lyricInner.style.transform = `translateY(${offset}px)`;
+            }
+        }
+    }
+
+    fetch('file/music/lyrics.lrc')
+        .then(r => r.ok ? r.text() : '')
+        .then(text => {
+            if (text) {
+                lyrics = parseLRC(text);
+                renderLyrics();
+            }
+        })
+        .catch(() => {});
+
+    jsmediatags.read(audio.querySelector('source').src, {
+        onSuccess: function(tag) {
+            var tags = tag.tags;
+            if (tags.picture) {
+                var image = tags.picture;
+                var base64 = '';
+                for (var i = 0; i < image.data.length; i++) {
+                    base64 += String.fromCharCode(image.data[i]);
+                }
+                var cover = 'data:' + image.format + ';base64,' + window.btoa(base64);
+                document.getElementById('coverImg').src = cover;
+            }
+        },
+        onError: function(error) {
+            document.getElementById('coverImg').src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect fill="%23333" width="64" height="64" rx="32"/><text x="32" y="38" font-size="24" fill="%23888" text-anchor="middle">♫</text></svg>';
+        }
+    });
+
+    platformBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        platformMenu.classList.toggle('active');
+    });
+
+    document.addEventListener('click', () => platformMenu.classList.remove('active'));
+
+    document.querySelectorAll('.platform-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const p = item.dataset.platform;
+            if (p === 'local') {
+                audio.play().catch(() => {});
+                playBtn.textContent = '⏸';
+            } else if (musicConfig.platforms[p]) {
+                window.open(musicConfig.platforms[p], '_blank');
+            }
+            platformMenu.classList.remove('active');
+        });
+    });
+
+    function formatTime(s) {
+        const m = Math.floor(s / 60);
+        const sec = Math.floor(s % 60);
+        return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+    }
+
+    playBtn.addEventListener('click', () => {
+        if (audio.paused) { audio.play(); playBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg>'; }
+        else { audio.pause(); playBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>'; }
+    });
+
+    audio.addEventListener('timeupdate', () => {
+        currentTimeEl.textContent = formatTime(audio.currentTime);
+        if (audio.duration) {
+            progressFill.style.width = (audio.currentTime / audio.duration * 100) + '%';
+        }
+        updateLyric();
+    });
+
+    audio.addEventListener('loadedmetadata', () => {
+        durationEl.textContent = formatTime(audio.duration);
+    });
+
+    audio.addEventListener('ended', () => {
+        playBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>';
+        progressFill.style.width = '0%';
+        currentLyricIndex = -1;
+    });
+
+    progressBar.addEventListener('click', (e) => {
+        const rect = progressBar.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width;
+        audio.currentTime = x * audio.duration;
+    });
 
     async function loadMusicConfig() {
         try {
             const resp = await fetch('file/configuration/config.json');
             if (resp.ok) {
                 const cfg = await resp.json();
-                if (cfg.music) {
-                    if (cfg.music.platforms) musicConfig.platforms = cfg.music.platforms;
-                    if (cfg.music.playlist && cfg.music.playlist.length) {
-                        musicConfig.playlist = cfg.music.playlist.map(t => ({
-                            name: t.name,
-                            artist: t.artist,
-                            url: t.file || t.url || '',
-                            cover: t.cover || '',
-                            lrc: t.lyrics || t.lrc || ''
-                        }));
-                    }
+                if (cfg.music && cfg.music.platforms) {
+                    musicConfig.platforms = cfg.music.platforms;
                 }
             }
         } catch {}
         const s = SettingsManager.load();
         if (s.platforms) musicConfig.platforms = s.platforms;
-        if (s.playlist && s.playlist.length) {
-            musicConfig.playlist = s.playlist.map(t => ({
-                name: t.name,
-                artist: t.artist,
-                url: t.file || t.url || '',
-                cover: t.cover || '',
-                lrc: t.lyrics || t.lrc || ''
-            }));
-        }
-        initAplayer(musicConfig.playlist);
     }
 
     // Init Dock
@@ -631,11 +825,12 @@
 
         exportConfig() {
             const settings = this.load();
+            const name = settings.nickname || '用户';
             const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'nemuran-config.json';
+            a.download = name + '.json';
             a.click();
             URL.revokeObjectURL(url);
         },

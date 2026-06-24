@@ -33,20 +33,16 @@
 
 ```
 nemuran.me/
-├── index.html                  # 主页面
-├── background.webp             # 背景图片
+├── index.html              # 主页面
+├── background.webp         # 背景图片
+├── imgs/                   # 图片资源
 ├── file/
-│   ├── aplayer/
-│   │   ├── APlayer.min.css     # 播放器样式
-│   │   └── APlayer.min.js      # 播放器脚本
 │   ├── music/
-│   │   ├── music.mp3           # 本地音乐文件（可选）
-│   │   └── lyrics.lrc          # LRC 歌词文件（可选）
-│   ├── dock tool/
-│   │   ├── dock.css            # 底栏样式
-│   │   └── dock.js             # 底栏逻辑
-│   └── configuration/
-│       └── config.json         # 默认配置
+│   │   ├── music.mp3       # 音乐文件
+│   │   ├── lyrics.lrc      # 歌词文件
+│   │   └── cover.jpg       # 封面图片（可选，自动读取内嵌封面）
+│   └── js/
+│       └── jsmediatags.min.js
 └── README.md
 ```
 
