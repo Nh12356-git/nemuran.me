@@ -6,10 +6,18 @@
 
 - 实时时钟显示
 - 日期显示（年月日 + 星期）
-- 音乐播放器
-  - 自动读取 MP3 内嵌封面
-  - 滚动同步歌词
-  - 多平台跳转（网易云、QQ音乐、Bilibili、本地）
+- Aplayer 音乐播放器
+  - 支持在线音乐源
+  - 歌词同步显示
+  - 播放列表管理
+- 自适应底栏（快捷工具导航，支持自定义添加）
+- 页面设置
+  - 站点信息（昵称、标题）
+  - 显示效果（毛玻璃、底栏）
+- 高级设置
+  - 播放源链接配置
+  - 导入/导出配置
+  - 重置所有设置
 - 毛玻璃卡片设计
 - 响应式布局
 - 流畅动画效果
@@ -18,42 +26,59 @@
 
 - HTML5
 - CSS3（毛玻璃效果、动画、响应式设计）
-- JavaScript
-- jsmediatags（读取音频元数据）
-
-## 预览
-
-直接打开 `index.html` 即可（音乐功能需启动本地服务器）
-
-```bash
-npx serve .
-```
+- Vanilla JavaScript（零框架依赖）
+- Aplayer（开源网页音乐播放器）
 
 ## 项目结构
 
 ```
 nemuran.me/
-├── index.html              # 主页面
-├── background.webp         # 背景图片
-├── imgs/                   # 图片资源
+├── index.html                  # 主页面
+├── background.webp             # 背景图片
 ├── file/
+│   ├── aplayer/
+│   │   ├── APlayer.min.css     # 播放器样式
+│   │   └── APlayer.min.js      # 播放器脚本
 │   ├── music/
-│   │   ├── music.mp3       # 音乐文件
-│   │   ├── lyrics.lrc      # 歌词文件
-│   │   └── cover.jpg       # 封面图片（可选，自动读取内嵌封面）
-│   └── js/
-│       └── jsmediatags.min.js
+│   │   ├── music.mp3           # 本地音乐文件（可选）
+│   │   └── lyrics.lrc          # LRC 歌词文件（可选）
+│   ├── dock tool/
+│   │   ├── dock.css            # 底栏样式
+│   │   └── dock.js             # 底栏逻辑
+│   └── configuration/
+│       └── config.json         # 默认配置
 └── README.md
 ```
 
-## 歌词文件格式
+## 使用方法
 
-在 `file/music/lyrics.lrc` 中添加 LRC 格式歌词：
+### 本地预览
 
+```bash
+npx serve .
 ```
-[00:15.50]歌词内容
-[00:22.00]下一句歌词
+
+访问 `http://localhost:3000`
+
+### 配置在线音乐
+
+在 `file/configuration/config.json` 的 `playlist` 数组中添加歌曲：
+
+```json
+{
+    "name": "歌曲名称",
+    "artist": "歌手",
+    "url": "https://example.com/music.mp3",
+    "cover": "https://example.com/cover.jpg",
+    "lrc": "https://example.com/lyrics.lrc"
+}
 ```
+
+### 数据存储
+
+- 用户配置保存在浏览器 localStorage 中
+- 点击「导出配置」可下载配置文件备份
+- 导入配置文件可恢复所有设置
 
 ## 许可
 

@@ -1,0 +1,30 @@
+{
+    "site": {
+        "title": "nemuran.me",
+        "author": "空气喵"
+    },
+    "user": {
+        "nickname": ""
+    },
+    "music": {
+        "platforms": {
+            "netease": "https://music.163.com/#/song?id=1974443814",
+            "qq": "https://y.qq.com/n/ryqq/songDetail/001R1a2x3z6WYa",
+            "bilibili": "https://www.bilibili.com/video/BV1Mh411s7ZD"
+        },
+        "playlist": [
+            {
+                "name": "命に嫌われている",
+                "artist": "カンザキイオリ",
+                "url": "file/music/music.mp3",
+                "cover": "",
+                "lrc": "file/music/lyrics.lrc"
+            }
+        ]
+    },
+    "display": {
+        "glassEffect": true,
+        "showDock": true
+    },
+    "dockTools": []
+}
