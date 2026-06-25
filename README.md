@@ -6,21 +6,23 @@
 
 - 实时时钟与日期显示（年月日 + 星期）
 - 音乐播放器
-  - LRC 歌词同步滚动
+  - 歌单列表弹窗，点击切换歌曲
+  - 每次刷新自动从 MP3 内嵌标签读取标题、歌手、封面
+  - LRC 歌词同步滚动 / MP3 内嵌歌词自动识别
   - 进度条拖拽
-  - 自动读取 MP3 内嵌封面
-  - 支持跳转网易云/QQ音乐/Bilibili
+  - 歌名/歌手鼠标悬停从左向右滚动显示完整名称
+  - 播放结束自动下一首
 - 自适应底栏工具导航
-  - 支持自定义添加快捷工具(默认有百度，360搜索，bing,bilbil,steam++)
+  - 支持自定义添加快捷工具
   - 自动获取网站图标
   - 悬浮移除
-- 页面设置面板
-  - 站点信息（昵称、标题）
+- 页面设置面板（毛玻璃侧栏）
+  - 站点信息（昵称可选，默认「默认用户」）
   - 显示效果（毛玻璃开关、底栏开关）
-  - 壁纸切换（默认背景 + file/picture 目录下的图片）
+  - 壁纸切换（默认背景 + 自定义上传）
 - 高级设置
   - 播放源链接配置
-  - 导入/导出配置（JSON）
+  - 导入/导出配置（JSON，以昵称命名）
   - 重置所有设置
 - 毛玻璃卡片设计 + 流畅动画
 - 响应式布局（桌面/平板/手机）
@@ -37,51 +39,56 @@
 
 ```
 nemuran.me/
-├── index.html                  # 主页面
-├── background.webp             # 背景图片
+├── index.html                      # 主页面
+├── background.webp                 # 默认背景图片
 ├── src/
 │   ├── configuration/
-│   │   ├── config.json         # 默认配置（站点/音乐/显示/底栏）
-│   │   └── user.json           # 用户配置模板
+│   │   ├── config.json             # 默认配置
+│   │   └── user.json               # 用户配置模板
 │   ├── dock tool/
-│   │   ├── dock.js             # 底栏管理器
-│   │   └── dock.css            # 底栏样式
+│   │   ├── dock.js                 # 底栏管理器
+│   │   └── dock.css                # 底栏样式
 │   ├── music card/
-│   │   ├── music.js            # 音乐播放器逻辑
-│   │   └── music.css           # 音乐播放器样式
+│   │   ├── music.js                # 音乐播放器逻辑
+│   │   └── music.css               # 音乐播放器样式
 │   ├── setting/
-│   │   ├── setting.js          # 页面设置面板逻辑
-│   │   └── setting.css         # 页面设置面板样式
-│   ├── imgs/
-│   │   └── favicon_io/
-│   │       └── favicon.svg
+│   │   ├── setting.js              # 页面设置面板逻辑
+│   │   └── setting.css             # 页面设置面板样式
+│   ├── imgs/favicon_io/            # 网站图标（ICO/PNG/WEBMANIFEST）
 │   └── js/
-│       └── jsmediatags.min.js  # MP3 元数据读取库
+│       └── jsmediatags.min.js      # MP3 元数据读取库
 └── file/
     ├── music/
-    │   ├── music.mp3           # 本地音乐文件
-    │   └── lyrics.lrc          # 歌词文件
-    └── picture/                # 壁纸图片目录
-        └── *.webp              # 可切换的壁纸
+    │   ├── list.json               # 歌曲索引（ID → 文件夹映射）
+    │   ├── カンザキイオリ - 命に嫌われている/
+    │   │   ├── music.mp3
+    │   │   └── lyrics.lrc
+    │   ├── 兰音Reine - 生きる/
+    │   │   ├── 兰音Reine - 生きる.mp3
+    │   │   └── lyrics.lrc
+    │   └── ...                     # 每首歌曲独立文件夹
+    └── picture/                    # 壁纸图片目录
 ```
 
-## 配置说明
+## 添加新歌曲
 
-### 添加在线音乐
-
-编辑 `src/configuration/config.json`，在 `music.playlist` 数组中添加：
+1. 在 `file/music/` 下创建新文件夹，命名为 `歌手名 - 歌曲名`
+2. 将 MP3 文件和 lyrics.lrc 放入文件夹
+3. 在 `file/music/list.json` 中添加一条记录：
 
 ```json
 {
-    "name": "歌曲名称",
-    "artist": "歌手",
-    "url": "https://example.com/music.mp3",
-    "cover": "https://example.com/cover.jpg",
-    "lrc": "https://example.com/lyrics.lrc"
+    "id": 6,
+    "folder": "歌手名 - 歌曲名",
+    "file": "歌手名 - 歌曲名.mp3",
+    "title": "歌曲名",
+    "artist": "歌手名"
 }
 ```
 
-### 底栏工具
+> 歌曲标题、歌手、封面每次刷新会从 MP3 内嵌标签自动读取，list.json 中的 title/artist 仅作备用。
+
+## 底栏工具
 
 在 `src/configuration/config.json` 的 `dockTools` 数组中预设：
 
@@ -93,23 +100,22 @@ nemuran.me/
 
 也可通过页面底部的「+」按钮动态添加。
 
-### 添加壁纸
+## 添加壁纸
 
-将图片文件放入 `file/picture/` 目录，然后在 `index.html` 的 `WallpaperManager.scanWallpapers` 方法中添加文件名：
+将图片文件放入 `file/picture/` 目录，然后在 `src/setting/setting.js` 的 `WallpaperManager.getBuiltinFiles` 方法中添加文件名：
 
 ```js
-const pictureFiles = [
-    '5fszgXeOxmL3Wdv.webp',
-    'your-new-wallpaper.webp'
-];
+getBuiltinFiles() {
+    return ['existing.webp', 'your-new-wallpaper.webp'];
+}
 ```
 
 在页面设置面板中即可选择切换。
 
-### 数据存储
+## 数据存储
 
 - 所有用户设置保存在浏览器 `localStorage`（key: `nemuran_settings`）
-- 支持导出为 JSON 文件备份，导入即可恢复
+- 支持导出为 JSON 文件备份（以昵称命名），导入即可恢复
 
 ## 本地运行
 
