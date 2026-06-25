@@ -300,8 +300,9 @@ const MusicPlayer = {
 
         this.playBtn.addEventListener('click', () => {
             if (this.audio.paused) {
-                this.audio.play();
-                this.playBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg>';
+                this.audio.play().then(() => {
+                    this.playBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg>';
+                }).catch(() => {});
             } else {
                 this.audio.pause();
                 this.playBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>';
@@ -313,7 +314,7 @@ const MusicPlayer = {
 
         this.audio.addEventListener('timeupdate', () => {
             this.currentTimeEl.textContent = this.formatTime(this.audio.currentTime);
-            if (this.audio.duration) {
+            if (this.audio.duration && !this._dragging) {
                 this.progressFill.style.width = (this.audio.currentTime / this.audio.duration * 100) + '%';
             }
             this.updateLyric();
@@ -324,13 +325,46 @@ const MusicPlayer = {
         });
 
         this.audio.addEventListener('ended', () => {
+            this.playBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>';
             this.nextTrack();
         });
 
-        this.progressBar.addEventListener('click', (e) => {
+        const seekFromEvent = (e) => {
             const rect = this.progressBar.getBoundingClientRect();
-            const x = (e.clientX - rect.left) / rect.width;
-            this.audio.currentTime = x * this.audio.duration;
+            const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+            this.progressFill.style.width = (x * 100) + '%';
+            if (this.audio.duration) {
+                this.audio.currentTime = x * this.audio.duration;
+            }
+        };
+
+        this.progressBar.addEventListener('click', seekFromEvent);
+
+        this.progressBar.addEventListener('mousedown', (e) => {
+            this._dragging = true;
+            seekFromEvent(e);
+            const onMove = (ev) => seekFromEvent(ev);
+            const onUp = () => {
+                this._dragging = false;
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
+            };
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            if (e.code === 'Space') {
+                e.preventDefault();
+                this.playBtn.click();
+            } else if (e.code === 'ArrowRight') {
+                e.preventDefault();
+                if (this.audio.duration) this.audio.currentTime = Math.min(this.audio.duration, this.audio.currentTime + 5);
+            } else if (e.code === 'ArrowLeft') {
+                e.preventDefault();
+                this.audio.currentTime = Math.max(0, this.audio.currentTime - 5);
+            }
         });
     },
 
