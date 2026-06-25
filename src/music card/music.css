@@ -1,8 +1,8 @@
 .music-card {
-    padding: 1.2rem; max-width: 360px;
+    padding: 1.2rem; width: 360px;
     animation-delay: 0.6s;
     position: relative; z-index:1;
-    overflow: visible;
+    overflow: hidden;
 }
 .music-top {
     display: flex; gap: 0.8rem; align-items: center; margin-bottom: 0.6rem;
@@ -129,11 +129,11 @@
 }
 
 @media (max-width:768px){
-    .music-card{padding:1.2rem 1.5rem; max-width:320px; border-radius:20px;}
+    .music-card{padding:1.2rem 1.5rem; width:320px; border-radius:20px;}
     .music-cover{width:56px; height:56px;}
 }
 @media (max-width:480px){
-    .music-card{padding:1.2rem; max-width:100%;}
+    .music-card{padding:1.2rem; width:100%;}
 }
 
 .playlist-overlay {
