@@ -17,7 +17,7 @@ const MusicPlayer = {
         platforms: {}
     },
 
-    init() {
+    async init() {
         this.audio = document.getElementById('audio');
         this.playBtn = document.getElementById('playBtn');
         this.prevBtn = document.getElementById('prevBtn');
@@ -29,7 +29,7 @@ const MusicPlayer = {
         this.lyricInner = document.getElementById('lyricInner');
         this.lyricContainer = document.getElementById('lyricContainer');
 
-        this.buildPlaylist();
+        await this.buildPlaylist();
         this.loadTrack(this.currentTrack, false);
         this.bindEvents();
         this.initMarquee();
@@ -66,14 +66,22 @@ const MusicPlayer = {
         });
     },
 
-    buildPlaylist() {
-        this.playlist = [
-            { id: '#1', file: 'file/music/1/music.mp3', title: '命に嫌われている', artist: 'カンザキイオリ', lrc: 'file/music/1/lyrics.lrc' },
-            { id: '#2', file: 'file/music/2/music.mp3', title: '命に嫌われている (feat. 宵崎奏 & 初音ミク)', artist: 'カンザキイオリ, 25時、ナイトコードで。, 初音ミク', lrc: 'file/music/2/lyrics.lrc' },
-            { id: '#3', file: 'file/music/3/music.mp3', title: '生きる', artist: '兰音Reine', lrc: 'file/music/3/lyrics.lrc' },
-            { id: '#4', file: 'file/music/4/music.mp3', title: 'ビビデバ', artist: '星街すいせい', lrc: 'file/music/4/lyrics.lrc' },
-            { id: '#5', file: 'file/music/5/music.mp3', title: '放課後マーメイド', artist: 'しぐれうい', lrc: 'file/music/5/lyrics.lrc' }
-        ];
+    async buildPlaylist() {
+        try {
+            const resp = await fetch('file/music/list.json');
+            const list = await resp.json();
+            this.playlist = list.map(item => ({
+                id: '#' + item.id,
+                file: `file/music/${item.id}/${item.file}`,
+                title: item.title,
+                artist: item.artist,
+                lrc: `file/music/${item.id}/lyrics.lrc`
+            }));
+        } catch {
+            this.playlist = [
+                { id: '#1', file: 'file/music/1/music.mp3', title: '命に嫌われている', artist: 'カンザキイオリ', lrc: 'file/music/1/lyrics.lrc' }
+            ];
+        }
         this.renderPlaylistUI();
     },
 
