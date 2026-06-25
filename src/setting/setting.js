@@ -101,7 +101,8 @@ const WallpaperManager = {
 
     async init() {
         this.grid = document.getElementById('wallpaperGrid');
-        this.selectedWallpaper = settingsData.wallpaper || 'default';
+        const s = SettingsManager.load();
+        this.selectedWallpaper = s.wallpaper || 'default';
         this.renderAll();
         this.bindEvents();
     },

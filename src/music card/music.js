@@ -162,7 +162,8 @@ const MusicPlayer = {
     },
 
     loadCoverFrom(src) {
-        jsmediatags.read(src, {
+        const url = new URL(src, window.location.href).href;
+        jsmediatags.read(url, {
             onSuccess: (tag) => {
                 var tags = tag.tags;
                 if (tags.picture) {
