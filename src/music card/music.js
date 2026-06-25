@@ -68,11 +68,11 @@ const MusicPlayer = {
 
     buildPlaylist() {
         this.playlist = [
-            { id: '#1', file: 'file/music/music.mp3', title: '命に嫌われている', artist: 'カンザキイオリ', lrc: 'file/music/lyrics.lrc' },
-            { id: '#2', file: 'file/music/カンザキイオリ,25時、ナイトコードで。,初音ミク - 命に嫌われている (feat. 宵崎奏 & 初音ミク).mp3', title: '命に嫌われている (feat. 宵崎奏 & 初音ミク)', artist: 'カンザキイオリ, 25時、ナイトコードで。, 初音ミク', lrc: '' },
-            { id: '#3', file: 'file/music/兰音Reine - 生きる.mp3', title: '生きる', artist: '兰音Reine', lrc: '' },
-            { id: '#4', file: 'file/music/星街すいせい - ビビデバ.mp3', title: 'ビビデバ', artist: '星街すいせい', lrc: '' },
-            { id: '#5', file: 'file/music/しぐれうい - 放課後マーメイド.mp3', title: '放課後マーメイド', artist: 'しぐれうい', lrc: '' }
+            { id: '#1', file: 'file/music/1/music.mp3', title: '命に嫌われている', artist: 'カンザキイオリ', lrc: 'file/music/1/lyrics.lrc' },
+            { id: '#2', file: 'file/music/2/music.mp3', title: '命に嫌われている (feat. 宵崎奏 & 初音ミク)', artist: 'カンザキイオリ, 25時、ナイトコードで。, 初音ミク', lrc: 'file/music/2/lyrics.lrc' },
+            { id: '#3', file: 'file/music/3/music.mp3', title: '生きる', artist: '兰音Reine', lrc: 'file/music/3/lyrics.lrc' },
+            { id: '#4', file: 'file/music/4/music.mp3', title: 'ビビデバ', artist: '星街すいせい', lrc: 'file/music/4/lyrics.lrc' },
+            { id: '#5', file: 'file/music/5/music.mp3', title: '放課後マーメイド', artist: 'しぐれうい', lrc: 'file/music/5/lyrics.lrc' }
         ];
         this.renderPlaylistUI();
     },
