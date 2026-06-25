@@ -9,7 +9,9 @@
     <link rel="icon" href="imgs/favicon_io/favicon.svg" type="image/svg+xml">
     <link rel="shortcut icon" href="imgs/favicon_io/favicon.svg" type="image/svg+xml">
     <title>nemuran.me</title>
-    <link rel="stylesheet" href="file/dock tool/dock.css">
+    <link rel="stylesheet" href="src/dock tool/dock.css">
+    <link rel="stylesheet" href="src/music card/music.css">
+    <link rel="stylesheet" href="src/setting/setting.css">
     <style>
         * {
             margin: 0;
@@ -124,277 +126,16 @@
             transform: scale(1.03);
         }
 
-        .music-card {
-            padding: 1.2rem; max-width: 360px;
-            animation-delay: 0.6s;
-            position: relative; z-index:1;
-            overflow: visible;
-        }
-        .music-top {
-            display: flex; gap: 0.8rem; align-items: center; margin-bottom: 0.6rem;
-        }
-        .music-cover {
-            width: 52px; height: 52px; border-radius: 50%; overflow: hidden;
-            flex-shrink: 0; border: 2px solid rgba(255,255,255,0.15);
-            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-        }
-        .music-cover img {
-            width: 100%; height: 100%; object-fit: cover;
-        }
-        .music-meta { flex: 1; min-width: 0; }
-        .music-tag {
-            display: inline-block; font-size: 0.65rem; color: rgba(255,255,255,0.6);
-            border: 1px solid rgba(255,255,255,0.2); border-radius: 4px;
-            padding: 2px 8px; margin-bottom: 0.4rem; letter-spacing: 1px;
-        }
-        .music-title {
-            font-size: 1rem; font-weight: 500; color: rgba(255,255,255,0.95);
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
-        .music-artist {
-            font-size: 0.75rem; color: rgba(255,255,255,0.6); margin-top: 0.15rem;
-        }
-        .lyric-container {
-            height: 48px; overflow: hidden; position: relative;
-            margin-bottom: 0.5rem; margin-top: -0.2rem; text-align: center;
-            mask-image: linear-gradient(transparent, black 15%, black 85%, transparent);
-            -webkit-mask-image: linear-gradient(transparent, black 15%, black 85%, transparent);
-        }
-        .lyric-inner {
-            transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
-        }
-        .lyric-line {
-            font-size: 0.75rem; color: rgba(255,255,255,0.35);
-            line-height: 1.6; height: 1.6em;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            transition: all 0.35s ease;
-        }
-        .lyric-line.active {
-            color: rgba(255,255,255,0.95); font-size: 0.8rem;
-        }
-        .lyric-placeholder {
-            font-size: 0.75rem; color: rgba(255,255,255,0.35);
-            line-height: 3em;
-        }
-        .music-progress {
-            display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem;
-        }
-        .music-progress .time {
-            font-size: 0.65rem; color: rgba(255,255,255,0.5);
-            min-width: 28px; font-variant-numeric: tabular-nums;
-        }
-        .progress-bar {
-            flex: 1; height: 3px; background: rgba(255,255,255,0.15);
-            border-radius: 2px; cursor: pointer; position: relative;
-        }
-        .progress-fill {
-            height: 100%; background: rgba(255,255,255,0.7); border-radius: 2px;
-            width: 0%; transition: width 0.1s linear;
-        }
-        .music-controls {
-            display: flex; align-items: center; justify-content: center; gap: 1.2rem;
-            position: relative;
-        }
-        .platform-btn {
-            position: absolute; right: 0; bottom: -0.3rem;
-            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 20px; padding: 0.25rem 0.6rem;
-            color: rgba(255,255,255,0.6); font-size: 0.65rem;
-            cursor: pointer; transition: all 0.3s;
-            display: flex; align-items: center; gap: 0.25rem;
-        }
-        .platform-btn:hover { background: rgba(255,255,255,0.18); color: rgba(255,255,255,0.9); }
-        .platform-menu {
-            position: absolute; right: 0; bottom: 2.5rem;
-            background: rgba(20,20,35,0.85);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 12px; padding: 0.4rem;
-            min-width: 150px; opacity: 0;
-            transform: translateY(8px); pointer-events: none;
-            transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
-            z-index: 10;
-        }
-        .platform-menu.active {
-            opacity: 1; transform: translateY(0); pointer-events: auto;
-        }
-        .platform-item {
-            display: flex; align-items: center; gap: 0.5rem;
-            padding: 0.45rem 0.7rem; border-radius: 8px;
-            color: rgba(255,255,255,0.75); font-size: 0.75rem;
-            cursor: pointer; transition: all 0.2s;
-        }
-        .platform-item:hover {
-            background: rgba(255,255,255,0.1); color: #fff;
-        }
-        .platform-item .icon { font-size: 0.9rem; }
-        .ctrl-btn {
-            background: none; border: none; color: rgba(255,255,255,0.7);
-            cursor: pointer; font-size: 1rem; padding: 0.2rem;
-            transition: all 0.3s;
-        }
-        .ctrl-btn:hover { color: rgba(255,255,255,1); transform: scale(1.1); }
-        .play-btn {
-            width: 38px; height: 38px; border-radius: 50%; border: none;
-            background: linear-gradient(135deg, rgba(138,180,248,0.6), rgba(167,139,250,0.6));
-            color: #fff; font-size: 1rem; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 20px rgba(138,180,248,0.3);
-            transition: all 0.3s;
-            line-height: 1;
-        }
-        .play-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 28px rgba(138,180,248,0.5);
-        }
-
-        .settings-btn {
-            position: fixed; top: 1.5rem; right: 1.5rem; z-index: 90;
-            width: 42px; height: 42px; border-radius: 50%; border: none;
-            background: rgba(255,255,255,0.08);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.12);
-            color: rgba(255,255,255,0.6); font-size: 1.1rem;
-            cursor: pointer; transition: all 0.3s;
-            display: flex; align-items: center; justify-content: center;
-            animation: fadeInUpBlur 1.4s cubic-bezier(0.22,1,0.36,1) 0.8s both;
-        }
-        .settings-btn:hover {
-            background: rgba(255,255,255,0.15); color: #fff;
-            transform: rotate(60deg) scale(1.05);
-        }
-
-        .settings-panel-overlay {
-            position: fixed; inset: 0; z-index: 200;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-            display: flex; align-items: flex-start; justify-content: flex-end;
-            opacity: 0; pointer-events: none;
-            transition: opacity 0.3s;
-        }
-        .settings-panel-overlay.active { opacity: 1; pointer-events: auto; }
-        .settings-panel {
-            position: absolute; top: 0; right: 0;
-            width: 320px; max-width: 85vw; height: 100vh;
-            background: rgba(20,20,35,0.92);
-            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
-            border-left: 1px solid rgba(255,255,255,0.1);
-            padding: 2rem 1.5rem;
-            transform: translateX(100%);
-            transition: transform 0.35s cubic-bezier(0.22,1,0.36,1);
-            overflow-y: auto;
-        }
-        .settings-panel-overlay.active .settings-panel { transform: translateX(0); }
-        .settings-panel-header {
-            display: flex; align-items: center; justify-content: space-between;
-            margin-bottom: 1.5rem; padding-bottom: 1rem;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-        }
-        .settings-panel-header h3 {
-            font-size: 1.1rem; font-weight: 500; color: rgba(255,255,255,0.95);
-        }
-        .settings-close {
-            width: 32px; height: 32px; border-radius: 8px; border: none;
-            background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);
-            cursor: pointer; font-size: 1rem; transition: all 0.2s;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .settings-close:hover { background: rgba(255,255,255,0.12); color: #fff; }
-        .settings-section {
-            margin-bottom: 1.5rem;
-        }
-        .settings-section-title {
-            font-size: 0.7rem; color: rgba(255,255,255,0.35);
-            letter-spacing: 1px; text-transform: uppercase;
-            margin-bottom: 0.8rem;
-        }
-        .settings-item {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0.7rem 0.8rem; border-radius: 10px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.06);
-            margin-bottom: 0.5rem; transition: background 0.2s;
-        }
-        .settings-item:hover { background: rgba(255,255,255,0.08); }
-        .settings-item-label {
-            font-size: 0.85rem; color: rgba(255,255,255,0.85);
-        }
-        .settings-item-desc {
-            font-size: 0.7rem; color: rgba(255,255,255,0.4);
-            margin-top: 0.15rem;
-        }
-        .settings-input {
-            width: 100%; padding: 0.5rem 0.7rem; border-radius: 8px;
-            border: 1px solid rgba(255,255,255,0.12);
-            background: rgba(255,255,255,0.06); color: #fff;
-            font-size: 0.8rem; outline: none; transition: border-color 0.3s;
-            margin-top: 0.4rem;
-        }
-        .settings-input:focus { border-color: rgba(138,180,248,0.6); }
-        .settings-input::placeholder { color: rgba(255,255,255,0.25); }
-        .settings-toggle {
-            width: 40px; height: 22px; border-radius: 11px; border: none;
-            background: rgba(255,255,255,0.15); cursor: pointer;
-            position: relative; transition: background 0.3s; flex-shrink: 0;
-        }
-        .settings-toggle.active { background: rgba(138,180,248,0.6); }
-        .settings-toggle::after {
-            content: ''; position: absolute; top: 3px; left: 3px;
-            width: 16px; height: 16px; border-radius: 50%;
-            background: #fff; transition: transform 0.3s;
-        }
-        .settings-toggle.active::after { transform: translateX(18px); }
-        .settings-btn-action {
-            width: 100%; padding: 0.6rem; border-radius: 10px; border: none;
-            font-size: 0.8rem; cursor: pointer; transition: all 0.3s;
-            background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.7);
-            border: 1px solid rgba(255,255,255,0.08);
-            margin-top: 0.4rem;
-        }
-        .settings-btn-action:hover { background: rgba(255,255,255,0.12); color: #fff; }
-        .settings-btn-danger {
-            background: rgba(255,80,80,0.12); color: rgba(255,120,120,0.9);
-            border-color: rgba(255,80,80,0.15);
-        }
-        .settings-btn-danger:hover { background: rgba(255,80,80,0.2); color: #ff7777; }
-        .settings-version {
-            text-align: center; font-size: 0.65rem; color: rgba(255,255,255,0.2);
-            margin-top: 1.5rem; padding-top: 1rem;
-            border-top: 1px solid rgba(255,255,255,0.06);
-        }
-
-        .advanced-modal-overlay {
-            position: fixed; inset: 0; z-index: 250;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-            display: flex; align-items: center; justify-content: center;
-            opacity: 0; pointer-events: none;
-            transition: opacity 0.3s;
-        }
-        .advanced-modal-overlay.active { opacity: 1; pointer-events: auto; }
-        .advanced-modal {
-            background: rgba(20,20,35,0.92);
-            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 20px; padding: 1.5rem;
-            width: 90%; max-width: 360px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-            transform: translateY(20px) scale(0.95);
-            transition: transform 0.3s cubic-bezier(0.22,1,0.36,1);
-        }
-        .advanced-modal-overlay.active .advanced-modal { transform: translateY(0) scale(1); }
-
         @media (max-width:768px){
             .container{top:1.5rem; left:1.5rem; gap:1rem;}
             .time-card{padding:2rem 1.8rem; max-width:320px; border-radius:20px;}
-            .site-intro,.music-card{padding:1.2rem 1.5rem; max-width:320px; border-radius:20px;}
+            .site-intro{padding:1.2rem 1.5rem; max-width:320px; border-radius:20px;}
             .clock-display{font-size:2.8rem; letter-spacing:5px; min-width:230px;}
-            .music-cover{width:56px; height:56px;}
             .settings-btn{top:1rem; right:1rem;}
         }
         @media (max-width:480px){
             .container{top:1rem; left:1rem; right:1rem; gap:0.8rem;}
-            .time-card,.site-intro,.music-card{padding:1.2rem; max-width:100%;}
+            .time-card,.site-intro{padding:1.2rem; max-width:100%;}
             .clock-display{font-size:2.2rem; letter-spacing:4px; min-width:180px;}
             .settings-btn{top:0.8rem; right:0.8rem; width:38px; height:38px; font-size:1rem;}
         }
@@ -441,6 +182,17 @@
                 </div>
                 <button class="settings-toggle active" id="toggleDock"></button>
             </div>
+        </div>
+
+        <div class="settings-section">
+            <div class="settings-section-title">壁纸</div>
+            <div class="wallpaper-grid" id="wallpaperGrid">
+                <div class="wallpaper-item active" data-src="default">
+                    <img src="background.webp" alt="默认">
+                    <span class="wallpaper-check">✓</span>
+                </div>
+            </div>
+            <input type="file" id="wallpaperUploadInput" accept="image/*" multiple style="display:none;">
         </div>
 
         <div class="settings-section">
@@ -528,9 +280,9 @@
             <span class="time" id="duration">00:00</span>
         </div>
         <div class="music-controls">
-            <button class="ctrl-btn" id="prevBtn">⏮</button>
-            <button class="play-btn" id="playBtn">▶</button>
-            <button class="ctrl-btn" id="nextBtn">⏭</button>
+            <button class="ctrl-btn" id="prevBtn"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg></button>
+            <button class="play-btn" id="playBtn"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+            <button class="ctrl-btn" id="nextBtn"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18 14.5 12 6 6zM16 6h2v12h-2z"/></svg></button>
             <button class="platform-btn" id="platformBtn">♫ 源</button>
             <div class="platform-menu" id="platformMenu">
                 <div class="platform-item" data-platform="netease"><span class="icon">🎵</span>网易云音乐</div>
@@ -574,8 +326,10 @@
     </div>
 </div>
 
-    <script src="file/js/jsmediatags.min.js"></script>
-    <script src="file/dock tool/dock.js"></script>
+    <script src="src/js/jsmediatags.min.js"></script>
+    <script src="src/dock tool/dock.js"></script>
+    <script src="src/music card/music.js"></script>
+    <script src="src/setting/setting.js"></script>
     <script>
     const clock = document.getElementById('clock');
     const dateElement = document.getElementById('date');
@@ -597,383 +351,14 @@
     }
     updateDateTime();
 
-    // Music Player
-    const audio = document.getElementById('audio');
-    const playBtn = document.getElementById('playBtn');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const currentTimeEl = document.getElementById('currentTime');
-    const durationEl = document.getElementById('duration');
-    const progressBar = document.getElementById('progressBar');
-    const progressFill = document.getElementById('progressFill');
-    const platformBtn = document.getElementById('platformBtn');
-    const platformMenu = document.getElementById('platformMenu');
-
-    const musicConfig = {
-        title: '命に嫌われている',
-        artist: 'カンザキイオリ',
-        platforms: {
-            netease: 'https://music.163.com/#/song?id=1974443814',
-            qq: 'https://y.qq.com/n/ryqq/songDetail/001R1a2x3z6WYa',
-            bilibili: 'https://www.bilibili.com/video/BV1Mh411s7ZD'
-        }
-    };
-
-    document.getElementById('musicTitle').textContent = musicConfig.title;
-    document.getElementById('musicArtist').textContent = musicConfig.artist;
-
-    // Lyrics
-    const lyricInner = document.getElementById('lyricInner');
-    const lyricContainer = document.getElementById('lyricContainer');
-    let lyrics = [];
-    let currentLyricIndex = -1;
-
-    function parseLRC(text) {
-        const lines = text.split('\n');
-        const result = [];
-        const regex = /\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/;
-        for (const line of lines) {
-            const match = line.match(regex);
-            if (match) {
-                const min = parseInt(match[1]);
-                const sec = parseInt(match[2]);
-                const ms = parseInt(match[3].padEnd(3, '0'));
-                const time = min * 60 + sec + ms / 1000;
-                const text = match[4].trim();
-                if (text) result.push({ time, text });
-            }
-        }
-        return result.sort((a, b) => a.time - b.time);
-    }
-
-    function renderLyrics() {
-        if (lyrics.length === 0) {
-            lyricInner.innerHTML = '<div class="lyric-placeholder">暂无歌词</div>';
-            return;
-        }
-        lyricInner.innerHTML = lyrics.map((l, i) =>
-            `<div class="lyric-line" data-index="${i}">${l.text}</div>`
-        ).join('');
-    }
-
-    function updateLyric() {
-        if (lyrics.length === 0) return;
-        const ct = audio.currentTime;
-        let idx = -1;
-        for (let i = lyrics.length - 1; i >= 0; i--) {
-            if (ct >= lyrics[i].time) { idx = i; break; }
-        }
-        if (idx !== currentLyricIndex) {
-            currentLyricIndex = idx;
-            document.querySelectorAll('.lyric-line').forEach((el, i) => {
-                el.classList.toggle('active', i === idx);
-            });
-            if (idx >= 0) {
-                const lineH = 28;
-                const offset = -idx * lineH + lyricContainer.clientHeight / 2 - lineH / 2;
-                lyricInner.style.transform = `translateY(${offset}px)`;
-            }
-        }
-    }
-
-    fetch('file/music/lyrics.lrc')
-        .then(r => r.ok ? r.text() : '')
-        .then(text => {
-            if (text) {
-                lyrics = parseLRC(text);
-                renderLyrics();
-            }
-        })
-        .catch(() => {});
-
-    jsmediatags.read(audio.querySelector('source').src, {
-        onSuccess: function(tag) {
-            var tags = tag.tags;
-            if (tags.picture) {
-                var image = tags.picture;
-                var base64 = '';
-                for (var i = 0; i < image.data.length; i++) {
-                    base64 += String.fromCharCode(image.data[i]);
-                }
-                var cover = 'data:' + image.format + ';base64,' + window.btoa(base64);
-                document.getElementById('coverImg').src = cover;
-            }
-        },
-        onError: function(error) {
-            document.getElementById('coverImg').src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect fill="%23333" width="64" height="64" rx="32"/><text x="32" y="38" font-size="24" fill="%23888" text-anchor="middle">♫</text></svg>';
-        }
-    });
-
-    platformBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        platformMenu.classList.toggle('active');
-    });
-
-    document.addEventListener('click', () => platformMenu.classList.remove('active'));
-
-    document.querySelectorAll('.platform-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const p = item.dataset.platform;
-            if (p === 'local') {
-                audio.play().catch(() => {});
-                playBtn.textContent = '⏸';
-            } else if (musicConfig.platforms[p]) {
-                window.open(musicConfig.platforms[p], '_blank');
-            }
-            platformMenu.classList.remove('active');
-        });
-    });
-
-    function formatTime(s) {
-        const m = Math.floor(s / 60);
-        const sec = Math.floor(s % 60);
-        return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
-    }
-
-    playBtn.addEventListener('click', () => {
-        if (audio.paused) { audio.play(); playBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg>'; }
-        else { audio.pause(); playBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>'; }
-    });
-
-    audio.addEventListener('timeupdate', () => {
-        currentTimeEl.textContent = formatTime(audio.currentTime);
-        if (audio.duration) {
-            progressFill.style.width = (audio.currentTime / audio.duration * 100) + '%';
-        }
-        updateLyric();
-    });
-
-    audio.addEventListener('loadedmetadata', () => {
-        durationEl.textContent = formatTime(audio.duration);
-    });
-
-    audio.addEventListener('ended', () => {
-        playBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>';
-        progressFill.style.width = '0%';
-        currentLyricIndex = -1;
-    });
-
-    progressBar.addEventListener('click', (e) => {
-        const rect = progressBar.getBoundingClientRect();
-        const x = (e.clientX - rect.left) / rect.width;
-        audio.currentTime = x * audio.duration;
-    });
-
-    async function loadMusicConfig() {
-        try {
-            const resp = await fetch('file/configuration/config.json');
-            if (resp.ok) {
-                const cfg = await resp.json();
-                if (cfg.music && cfg.music.platforms) {
-                    musicConfig.platforms = cfg.music.platforms;
-                }
-            }
-        } catch {}
-        const s = SettingsManager.load();
-        if (s.platforms) musicConfig.platforms = s.platforms;
-    }
+    // Init Music Player
+    MusicPlayer.init();
 
     // Init Dock
     DockManager.init();
 
-    // Settings Panel
-    const SettingsManager = {
-        defaults: null,
-        localStorageKey: 'nemuran_settings',
-
-        async init() {
-            try {
-                const configResp = await fetch('file/configuration/config.json');
-                this.defaults = configResp.ok ? await configResp.json() : {};
-            } catch {
-                this.defaults = {};
-            }
-        },
-
-        load() {
-            const d = this.defaults || {};
-            let u = {};
-            try {
-                u = JSON.parse(localStorage.getItem(this.localStorageKey) || '{}');
-            } catch {}
-            return {
-                nickname: u.nickname || '',
-                siteTitle: u.siteTitle || d.site?.title || 'nemuran.me',
-                glassEffect: u.glassEffect ?? d.display?.glassEffect ?? true,
-                showDock: u.showDock ?? d.display?.showDock ?? true,
-                platforms: {
-                    netease: u.platforms?.netease || d.music?.platforms?.netease || '',
-                    qq: u.platforms?.qq || d.music?.platforms?.qq || '',
-                    bilibili: u.platforms?.bilibili || d.music?.platforms?.bilibili || ''
-                },
-                playlist: u.playlist || d.music?.playlist || []
-            };
-        },
-
-        save(settings) {
-            const data = {
-                nickname: settings.nickname,
-                siteTitle: settings.siteTitle,
-                glassEffect: settings.glassEffect,
-                showDock: settings.showDock,
-                platforms: settings.platforms,
-                playlist: settings.playlist
-            };
-            localStorage.setItem(this.localStorageKey, JSON.stringify(data));
-        },
-
-        exportConfig() {
-            const settings = this.load();
-            const name = settings.nickname || '用户';
-            const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = name + '.json';
-            a.click();
-            URL.revokeObjectURL(url);
-        },
-
-        importConfig(jsonStr) {
-            try {
-                const imported = JSON.parse(jsonStr);
-                localStorage.setItem(this.localStorageKey, JSON.stringify(imported));
-                return true;
-            } catch {
-                return false;
-            }
-        },
-
-        resetConfig() {
-            localStorage.removeItem(this.localStorageKey);
-        },
-
-        apply(settings) {
-            if (settings.siteTitle) document.title = settings.siteTitle;
-
-            document.querySelectorAll('.glass-card').forEach(card => {
-                card.style.backdropFilter = settings.glassEffect ? '' : 'none';
-                card.style.webkitBackdropFilter = settings.glassEffect ? '' : 'none';
-                card.style.background = settings.glassEffect ? '' : 'rgba(0,0,0,0.6)';
-            });
-
-            const dock = document.getElementById('bottomDock');
-            if (dock) dock.style.display = settings.showDock ? '' : 'none';
-
-            musicConfig.platforms = settings.platforms || musicConfig.platforms;
-        }
-    };
-
-    const settingsData = SettingsManager.load();
-    SettingsManager.apply(settingsData);
-    loadMusicConfig();
-
-    const settingsBtn = document.getElementById('settingsBtn');
-    const settingsOverlay = document.getElementById('settingsOverlay');
-    const settingsClose = document.getElementById('settingsClose');
-    const advancedOverlay = document.getElementById('advancedOverlay');
-    const advancedClose = document.getElementById('advancedClose');
-    const goAdvanced = document.getElementById('goAdvanced');
-    const settingNickname = document.getElementById('settingNickname');
-    const settingSiteTitle = document.getElementById('settingSiteTitle');
-    const settingNetease = document.getElementById('settingNetease');
-    const settingQQ = document.getElementById('settingQQ');
-    const settingBilibili = document.getElementById('settingBilibili');
-    const toggleGlass = document.getElementById('toggleGlass');
-    const toggleDock = document.getElementById('toggleDock');
-    const settingsSave = document.getElementById('settingsSave');
-    const settingsReset = document.getElementById('settingsReset');
-    const settingsExport = document.getElementById('settingsExport');
-    const settingsImport = document.getElementById('settingsImport');
-    const importFileInput = document.getElementById('importFileInput');
-
-    function openSettings() {
-        const s = SettingsManager.load();
-        settingNickname.value = s.nickname || '';
-        settingSiteTitle.value = s.siteTitle;
-        toggleGlass.classList.toggle('active', s.glassEffect);
-        toggleDock.classList.toggle('active', s.showDock);
-        settingsOverlay.classList.add('active');
-    }
-
-    function closeSettings() { settingsOverlay.classList.remove('active'); }
-
-    function openAdvanced() {
-        const s = SettingsManager.load();
-        settingNetease.value = s.platforms.netease || '';
-        settingQQ.value = s.platforms.qq || '';
-        settingBilibili.value = s.platforms.bilibili || '';
-        advancedOverlay.classList.add('active');
-    }
-
-    function closeAdvanced() { advancedOverlay.classList.remove('active'); }
-
-    settingsBtn.addEventListener('click', openSettings);
-    settingsClose.addEventListener('click', closeSettings);
-    settingsOverlay.addEventListener('click', (e) => { if (e.target === settingsOverlay) closeSettings(); });
-    goAdvanced.addEventListener('click', openAdvanced);
-    advancedClose.addEventListener('click', closeAdvanced);
-    advancedOverlay.addEventListener('click', (e) => { if (e.target === advancedOverlay) closeAdvanced(); });
-
-    toggleGlass.addEventListener('click', () => toggleGlass.classList.toggle('active'));
-    toggleDock.addEventListener('click', () => toggleDock.classList.toggle('active'));
-
-    settingsSave.addEventListener('click', () => {
-        const nickname = settingNickname.value.trim();
-        if (!nickname) {
-            settingNickname.style.borderColor = 'rgba(255,80,80,0.6)';
-            settingNickname.focus();
-            setTimeout(() => { settingNickname.style.borderColor = ''; }, 2000);
-            return;
-        }
-        const current = SettingsManager.load();
-        const newSettings = {
-            nickname: nickname,
-            siteTitle: settingSiteTitle.value.trim() || current.siteTitle,
-            glassEffect: toggleGlass.classList.contains('active'),
-            showDock: toggleDock.classList.contains('active'),
-            platforms: {
-                netease: settingNetease.value.trim(),
-                qq: settingQQ.value.trim(),
-                bilibili: settingBilibili.value.trim()
-            },
-            playlist: current.playlist
-        };
-        SettingsManager.save(newSettings);
-        SettingsManager.apply(newSettings);
-        loadMusicConfig();
-        closeSettings();
-    });
-
-    settingsExport.addEventListener('click', () => {
-        SettingsManager.exportConfig();
-    });
-
-    settingsImport.addEventListener('click', () => importFileInput.click());
-    importFileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            if (SettingsManager.importConfig(ev.target.result)) {
-                closeAdvanced();
-                location.reload();
-            } else {
-                alert('配置文件格式错误');
-            }
-        };
-        reader.readAsText(file);
-        importFileInput.value = '';
-    });
-
-    settingsReset.addEventListener('click', () => {
-        SettingsManager.resetConfig();
-        SettingsManager.apply(SettingsManager.load());
-        closeAdvanced();
-        closeSettings();
-        location.reload();
-    });
+    // Init Settings
+    initSettings();
 </script>
 
 </body>

@@ -16,7 +16,7 @@ const DockManager = {
 
     async loadConfig() {
         try {
-            const configResp = await fetch('file/configuration/config.json');
+            const configResp = await fetch('src/configuration/config.json');
             this.config = configResp.ok ? await configResp.json() : {};
             if (this.config.dockTools && this.config.dockTools.length > 0) {
                 this.defaultTools = this.config.dockTools;
