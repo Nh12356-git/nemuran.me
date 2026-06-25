@@ -123,7 +123,7 @@ const MusicPlayer = {
         if (track.lrc) {
             this.loadLyricsFrom(track.lrc);
         } else {
-            this.lyricInner.innerHTML = '<div class="lyric-placeholder">暂无歌词</div>';
+            this.loadLyricsFromMP3(track.file);
         }
 
         this.loadCoverFrom(track.file);
@@ -191,9 +191,38 @@ const MusicPlayer = {
                 if (text) {
                     this.lyrics = this.parseLRC(text);
                     this.renderLyrics();
+                } else {
+                    this.lyricInner.innerHTML = '<div class="lyric-placeholder">暂无歌词</div>';
                 }
             })
-            .catch(() => {});
+            .catch(() => {
+                this.lyricInner.innerHTML = '<div class="lyric-placeholder">暂无歌词</div>';
+            });
+    },
+
+    loadLyricsFromMP3(src) {
+        const url = new URL(src, window.location.href).href;
+        jsmediatags.read(url, {
+            onSuccess: (tag) => {
+                const lyrics = tag.tags.lyrics || tag.tags.USLT || '';
+                if (lyrics && typeof lyrics === 'string' && lyrics.trim()) {
+                    const lines = lyrics.trim().split('\n');
+                    const total = lines.length;
+                    const duration = this.audio.duration || 180;
+                    const interval = duration / total;
+                    this.lyrics = lines.map((text, i) => ({
+                        time: i * interval,
+                        text: text.trim()
+                    })).filter(l => l.text);
+                    this.renderLyrics();
+                } else {
+                    this.lyricInner.innerHTML = '<div class="lyric-placeholder">暂无歌词</div>';
+                }
+            },
+            onError: () => {
+                this.lyricInner.innerHTML = '<div class="lyric-placeholder">暂无歌词</div>';
+            }
+        });
     },
 
     loadCoverFrom(src) {
