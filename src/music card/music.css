@@ -204,3 +204,18 @@
 }
 .playlist-item.active .playlist-item-playing { display: block; }
 .playlist-item.active .playlist-item-index { display: none; }
+.playlist-item-delete {
+    width: 22px; height: 22px; border-radius: 6px; border: none;
+    background: transparent; color: rgba(255,255,255,0.2);
+    font-size: 0.85rem; cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s ease; opacity: 0;
+}
+.playlist-item:hover .playlist-item-delete { opacity: 1; }
+.playlist-item-delete:hover {
+    background: rgba(255,60,60,0.15); color: rgba(255,100,100,0.9);
+}
+.playlist-empty {
+    text-align: center; padding: 2rem 1rem;
+    font-size: 0.8rem; color: rgba(255,255,255,0.3);
+}

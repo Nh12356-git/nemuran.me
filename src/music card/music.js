@@ -13,6 +13,7 @@ const MusicPlayer = {
     currentLyricIndex: -1,
     playlist: [],
     currentTrack: 0,
+    deletedKey: 'nemuran_deleted_tracks',
     musicConfig: {
         platforms: {}
     },
@@ -70,17 +71,62 @@ const MusicPlayer = {
         try {
             const resp = await fetch('file/music/list.json');
             const list = await resp.json();
-            this.playlist = list.map(item => ({
-                id: '#' + item.id,
-                file: `file/music/${item.folder}/${item.file}`,
-                title: item.title,
-                artist: item.artist,
-                lrc: `file/music/${item.folder}/lyrics.lrc`
-            }));
+            const deleted = this.getDeleted();
+            this.playlist = list
+                .filter(item => !deleted.includes(String(item.id)))
+                .map(item => ({
+                    id: '#' + item.id,
+                    _rawid: String(item.id),
+                    file: `file/music/${item.folder}/${item.file}`,
+                    title: item.title,
+                    artist: item.artist,
+                    lrc: `file/music/${item.folder}/lyrics.lrc`
+                }));
         } catch {
             this.playlist = [];
         }
+        if (this.currentTrack >= this.playlist.length) {
+            this.currentTrack = Math.max(0, this.playlist.length - 1);
+        }
         await this.readAllMetadata();
+        this.renderPlaylistUI();
+    },
+
+    getDeleted() {
+        try { return JSON.parse(localStorage.getItem(this.deletedKey) || '[]'); }
+        catch { return []; }
+    },
+
+    deleteTrack(index) {
+        if (index < 0 || index >= this.playlist.length) return;
+        const track = this.playlist[index];
+        const deleted = this.getDeleted();
+        deleted.push(track._rawid);
+        localStorage.setItem(this.deletedKey, JSON.stringify(deleted));
+
+        const wasPlaying = !this.audio.paused;
+        this.playlist.splice(index, 1);
+
+        if (this.playlist.length === 0) {
+            this.currentTrack = 0;
+            this.audio.src = '';
+            document.getElementById('musicTitle').textContent = '未播放';
+            document.getElementById('musicArtist').textContent = '-';
+            document.getElementById('coverImg').src = '';
+            this.lyricInner.innerHTML = '<div class="lyric-placeholder">暂无歌词</div>';
+            this.progressFill.style.width = '0%';
+            this.currentTimeEl.textContent = '00:00';
+            this.durationEl.textContent = '00:00';
+            this.renderPlaylistUI();
+            return;
+        }
+
+        if (index === this.currentTrack) {
+            this.currentTrack = index >= this.playlist.length ? 0 : index;
+            this.loadTrack(this.currentTrack, wasPlaying);
+        } else if (index < this.currentTrack) {
+            this.currentTrack--;
+        }
         this.renderPlaylistUI();
     },
 
@@ -113,6 +159,10 @@ const MusicPlayer = {
 
     renderPlaylistUI() {
         const list = document.getElementById('playlistList');
+        if (this.playlist.length === 0) {
+            list.innerHTML = '<div class="playlist-empty">歌单为空</div>';
+            return;
+        }
         list.innerHTML = this.playlist.map((t, i) => `
             <div class="playlist-item${i === this.currentTrack ? ' active' : ''}" data-index="${i}">
                 <span class="playlist-item-index">${t.id}</span>
@@ -121,15 +171,25 @@ const MusicPlayer = {
                     <div class="playlist-item-name">${t.title}</div>
                     <div class="playlist-item-artist">${t.artist}</div>
                 </div>
+                <button class="playlist-item-delete" data-index="${i}" title="删除">&times;</button>
             </div>
         `).join('');
 
         list.querySelectorAll('.playlist-item').forEach(item => {
-            item.addEventListener('click', () => {
+            item.addEventListener('click', (e) => {
+                if (e.target.closest('.playlist-item-delete')) return;
                 const idx = parseInt(item.dataset.index);
                 if (idx === this.currentTrack) return;
                 this.loadTrack(idx, true);
                 document.getElementById('playlistOverlay').classList.remove('active');
+            });
+        });
+
+        list.querySelectorAll('.playlist-item-delete').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const idx = parseInt(btn.dataset.index);
+                this.deleteTrack(idx);
             });
         });
     },
