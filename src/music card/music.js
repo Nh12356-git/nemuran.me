@@ -14,6 +14,7 @@ const MusicPlayer = {
     playlist: [],
     currentTrack: 0,
     deletedKey: 'nemuran_deleted_tracks',
+    pendingKey: 'nemuran_pending_deletions',
     musicConfig: {
         platforms: {}
     },
@@ -71,17 +72,14 @@ const MusicPlayer = {
         try {
             const resp = await fetch('file/music/list.json');
             const list = await resp.json();
-            const deleted = this.getDeleted();
-            this.playlist = list
-                .filter(item => !deleted.includes(String(item.id)))
-                .map(item => ({
-                    id: '#' + item.id,
-                    _rawid: String(item.id),
-                    file: `file/music/${item.folder}/${item.file}`,
-                    title: item.title,
-                    artist: item.artist,
-                    lrc: `file/music/${item.folder}/lyrics.lrc`
-                }));
+            this.playlist = list.map(item => ({
+                id: '#' + item.id,
+                _rawid: String(item.id),
+                file: `file/music/${item.folder}/${item.file}`,
+                title: item.title,
+                artist: item.artist,
+                lrc: `file/music/${item.folder}/lyrics.lrc`
+            }));
         } catch {
             this.playlist = [];
         }
@@ -92,17 +90,18 @@ const MusicPlayer = {
         this.renderPlaylistUI();
     },
 
-    getDeleted() {
-        try { return JSON.parse(localStorage.getItem(this.deletedKey) || '[]'); }
+    getPending() {
+        try { return JSON.parse(localStorage.getItem(this.pendingKey) || '[]'); }
         catch { return []; }
     },
 
     deleteTrack(index) {
         if (index < 0 || index >= this.playlist.length) return;
         const track = this.playlist[index];
-        const deleted = this.getDeleted();
-        deleted.push(track._rawid);
-        localStorage.setItem(this.deletedKey, JSON.stringify(deleted));
+
+        const pending = this.getPending();
+        pending.push({rawid: track._rawid, folder: track.file.split('/').slice(-2, -1)[0]});
+        localStorage.setItem(this.pendingKey, JSON.stringify(pending));
 
         const wasPlaying = !this.audio.paused;
         this.playlist.splice(index, 1);
@@ -442,5 +441,16 @@ const MusicPlayer = {
             const s = SettingsManager.load();
             if (s.platforms) this.musicConfig.platforms = s.platforms;
         }
+    },
+
+    exportPending() {
+        const pending = this.getPending();
+        if (pending.length === 0) { console.log('没有待删除的歌曲'); return; }
+        const blob = new Blob([JSON.stringify(pending, null, 4)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'pending_deletions.json'; a.click();
+        URL.revokeObjectURL(url);
+        console.log(`已导出 ${pending.length} 条删除记录，请运行 node process_deletions.js 处理`);
     }
 };
