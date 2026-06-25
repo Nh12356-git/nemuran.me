@@ -72,15 +72,13 @@ const MusicPlayer = {
             const list = await resp.json();
             this.playlist = list.map(item => ({
                 id: '#' + item.id,
-                file: `file/music/${item.id}/${item.file}`,
+                file: `file/music/${item.folder}/${item.file}`,
                 title: item.title,
                 artist: item.artist,
-                lrc: `file/music/${item.id}/lyrics.lrc`
+                lrc: `file/music/${item.folder}/lyrics.lrc`
             }));
         } catch {
-            this.playlist = [
-                { id: '#1', file: 'file/music/1/music.mp3', title: '命に嫌われている', artist: 'カンザキイオリ', lrc: 'file/music/1/lyrics.lrc' }
-            ];
+            this.playlist = [];
         }
         this.renderPlaylistUI();
     },
