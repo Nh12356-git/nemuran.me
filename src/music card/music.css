@@ -44,11 +44,11 @@
     animation: marqueeScroll var(--scroll-duration, 6s) linear infinite;
 }
 @keyframes marqueeScroll {
-    0% { transform: translateX(0); }
-    15% { transform: translateX(0); }
-    50% { transform: translateX(var(--scroll-offset, -50%)); }
-    65% { transform: translateX(var(--scroll-offset, -50%)); }
-    100% { transform: translateX(0); }
+    0% { transform: translateX(var(--scroll-offset, -50%)); }
+    15% { transform: translateX(var(--scroll-offset, -50%)); }
+    50% { transform: translateX(0); }
+    65% { transform: translateX(0); }
+    100% { transform: translateX(var(--scroll-offset, -50%)); }
 }
 .lyric-container {
     height: 48px; overflow: hidden; position: relative;
