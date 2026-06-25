@@ -80,7 +80,35 @@ const MusicPlayer = {
         } catch {
             this.playlist = [];
         }
+        await this.readAllMetadata();
         this.renderPlaylistUI();
+    },
+
+    readMP3Tags(src) {
+        return new Promise((resolve) => {
+            const url = new URL(src, window.location.href).href;
+            jsmediatags.read(url, {
+                onSuccess: (tag) => {
+                    const t = tag.tags;
+                    resolve({
+                        title: t.title || '',
+                        artist: t.artist || '',
+                        picture: t.picture || null
+                    });
+                },
+                onError: () => resolve({ title: '', artist: '', picture: null })
+            });
+        });
+    },
+
+    async readAllMetadata() {
+        const tasks = this.playlist.map(async (track) => {
+            const tags = await this.readMP3Tags(track.file);
+            if (tags.title) track.title = tags.title;
+            if (tags.artist) track.artist = tags.artist;
+            track._picture = tags.picture;
+        });
+        await Promise.all(tasks);
     },
 
     renderPlaylistUI() {
@@ -120,6 +148,17 @@ const MusicPlayer = {
         document.getElementById('musicTitle').textContent = track.title;
         document.getElementById('musicArtist').textContent = track.artist;
 
+        if (track._picture) {
+            var image = track._picture;
+            var base64 = '';
+            for (var i = 0; i < image.data.length; i++) {
+                base64 += String.fromCharCode(image.data[i]);
+            }
+            document.getElementById('coverImg').src = 'data:' + image.format + ';base64,' + window.btoa(base64);
+        } else {
+            document.getElementById('coverImg').src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect fill="%23333" width="64" height="64" rx="32"/><text x="32" y="38" font-size="24" fill="%23888" text-anchor="middle">♫</text></svg>';
+        }
+
         this.progressFill.style.width = '0%';
         this.currentTimeEl.textContent = '00:00';
         this.durationEl.textContent = '00:00';
@@ -132,7 +171,6 @@ const MusicPlayer = {
             this.loadLyricsFromMP3(track.file);
         }
 
-        this.loadCoverFrom(track.file);
         this.updatePlaylistActive();
 
         if (autoPlay) {
@@ -227,27 +265,6 @@ const MusicPlayer = {
             },
             onError: () => {
                 this.lyricInner.innerHTML = '<div class="lyric-placeholder">暂无歌词</div>';
-            }
-        });
-    },
-
-    loadCoverFrom(src) {
-        const url = new URL(src, window.location.href).href;
-        jsmediatags.read(url, {
-            onSuccess: (tag) => {
-                var tags = tag.tags;
-                if (tags.picture) {
-                    var image = tags.picture;
-                    var base64 = '';
-                    for (var i = 0; i < image.data.length; i++) {
-                        base64 += String.fromCharCode(image.data[i]);
-                    }
-                    var cover = 'data:' + image.format + ';base64,' + window.btoa(base64);
-                    document.getElementById('coverImg').src = cover;
-                }
-            },
-            onError: function() {
-                document.getElementById('coverImg').src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect fill="%23333" width="64" height="64" rx="32"/><text x="32" y="38" font-size="24" fill="%23888" text-anchor="middle">♫</text></svg>';
             }
         });
     },
