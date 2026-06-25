@@ -68,8 +68,11 @@ const MusicPlayer = {
 
     buildPlaylist() {
         this.playlist = [
-            { file: 'file/music/music.mp3', title: '命に嫌われている', artist: 'カンザキイオリ', lrc: 'file/music/lyrics.lrc' },
-            { file: 'file/music/カンザキイオリ,25時、ナイトコードで。,初音ミク - 命に嫌われている (feat. 宵崎奏 & 初音ミク).mp3', title: '命に嫌われている (feat. 宵崎奏 & 初音ミク)', artist: 'カンザキイオリ, 25時、ナイトコードで。, 初音ミク', lrc: '' }
+            { id: '#1', file: 'file/music/music.mp3', title: '命に嫌われている', artist: 'カンザキイオリ', lrc: 'file/music/lyrics.lrc' },
+            { id: '#2', file: 'file/music/カンザキイオリ,25時、ナイトコードで。,初音ミク - 命に嫌われている (feat. 宵崎奏 & 初音ミク).mp3', title: '命に嫌われている (feat. 宵崎奏 & 初音ミク)', artist: 'カンザキイオリ, 25時、ナイトコードで。, 初音ミク', lrc: '' },
+            { id: '#3', file: 'file/music/兰音Reine - 生きる.mp3', title: '生きる', artist: '兰音Reine', lrc: '' },
+            { id: '#4', file: 'file/music/星街すいせい - ビビデバ.mp3', title: 'ビビデバ', artist: '星街すいせい', lrc: '' },
+            { id: '#5', file: 'file/music/しぐれうい - 放課後マーメイド.mp3', title: '放課後マーメイド', artist: 'しぐれうい', lrc: '' }
         ];
         this.renderPlaylistUI();
     },
@@ -78,7 +81,7 @@ const MusicPlayer = {
         const list = document.getElementById('playlistList');
         list.innerHTML = this.playlist.map((t, i) => `
             <div class="playlist-item${i === this.currentTrack ? ' active' : ''}" data-index="${i}">
-                <span class="playlist-item-index">${i + 1}</span>
+                <span class="playlist-item-index">${t.id}</span>
                 <div class="playlist-item-playing"><svg viewBox="0 0 24 24" fill="rgba(138,180,248,0.9)"><rect x="4" y="3" width="3" height="18" rx="1"><animate attributeName="height" values="18;10;18" dur="0.8s" repeatCount="indefinite"/><animate attributeName="y" values="3;7;3" dur="0.8s" repeatCount="indefinite"/></rect><rect x="10.5" y="3" width="3" height="18" rx="1"><animate attributeName="height" values="10;18;10" dur="0.8s" repeatCount="indefinite"/><animate attributeName="y" values="7;3;7" dur="0.8s" repeatCount="indefinite"/></rect><rect x="17" y="3" width="3" height="18" rx="1"><animate attributeName="height" values="18;8;18" dur="0.6s" repeatCount="indefinite"/><animate attributeName="y" values="3;8;3" dur="0.6s" repeatCount="indefinite"/></rect></svg></div>
                 <div class="playlist-item-info">
                     <div class="playlist-item-name">${t.title}</div>
