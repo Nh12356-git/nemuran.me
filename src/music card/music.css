@@ -15,18 +15,40 @@
 .music-cover img {
     width: 100%; height: 100%; object-fit: cover;
 }
-.music-meta { flex: 1; min-width: 0; }
+.music-meta { flex: 1; min-width: 0; overflow: hidden; position: relative; }
 .music-tag {
     display: inline-block; font-size: 0.65rem; color: rgba(255,255,255,0.6);
     border: 1px solid rgba(255,255,255,0.2); border-radius: 4px;
     padding: 2px 8px; margin-bottom: 0.4rem; letter-spacing: 1px;
 }
+.music-title-wrap {
+    overflow: hidden; position: relative; max-width: 100%;
+}
 .music-title {
     font-size: 1rem; font-weight: 500; color: rgba(255,255,255,0.95);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap; display: block;
+    transition: transform 0.4s ease;
+}
+.music-title.marquee {
+    animation: marqueeScroll var(--scroll-duration, 6s) linear infinite;
+}
+.music-artist-wrap {
+    overflow: hidden; position: relative; max-width: 100%; margin-top: 0.15rem;
 }
 .music-artist {
-    font-size: 0.75rem; color: rgba(255,255,255,0.6); margin-top: 0.15rem;
+    font-size: 0.75rem; color: rgba(255,255,255,0.6);
+    white-space: nowrap; display: block;
+    transition: transform 0.4s ease;
+}
+.music-artist.marquee {
+    animation: marqueeScroll var(--scroll-duration, 6s) linear infinite;
+}
+@keyframes marqueeScroll {
+    0% { transform: translateX(0); }
+    15% { transform: translateX(0); }
+    50% { transform: translateX(var(--scroll-offset, -50%)); }
+    65% { transform: translateX(var(--scroll-offset, -50%)); }
+    100% { transform: translateX(0); }
 }
 .lyric-container {
     height: 48px; overflow: hidden; position: relative;

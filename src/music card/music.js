@@ -32,6 +32,38 @@ const MusicPlayer = {
         this.buildPlaylist();
         this.loadTrack(this.currentTrack, false);
         this.bindEvents();
+        this.initMarquee();
+    },
+
+    initMarquee() {
+        const meta = document.querySelector('.music-meta');
+        const titleEl = document.getElementById('musicTitle');
+        const artistEl = document.getElementById('musicArtist');
+
+        const startMarquee = (el) => {
+            const parent = el.parentElement;
+            const overflow = el.scrollWidth - parent.clientWidth;
+            if (overflow <= 4) { el.classList.remove('marquee'); return; }
+            const speed = 50;
+            const duration = (el.scrollWidth / speed);
+            el.style.setProperty('--scroll-offset', `-${overflow}px`);
+            el.style.setProperty('--scroll-duration', `${duration}s`);
+            el.classList.add('marquee');
+        };
+
+        const stopMarquee = (el) => {
+            el.classList.remove('marquee');
+            el.style.transform = '';
+        };
+
+        meta.addEventListener('mouseenter', () => {
+            startMarquee(titleEl);
+            startMarquee(artistEl);
+        });
+        meta.addEventListener('mouseleave', () => {
+            stopMarquee(titleEl);
+            stopMarquee(artistEl);
+        });
     },
 
     buildPlaylist() {
