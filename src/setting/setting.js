@@ -47,7 +47,7 @@ const SettingsManager = {
 
     exportConfig() {
         const settings = this.load();
-        const name = settings.nickname || '用户';
+        const name = settings.nickname || '默认用户';
         const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -279,13 +279,7 @@ function initSettings() {
     toggleDock.addEventListener('click', () => toggleDock.classList.toggle('active'));
 
     settingsSave.addEventListener('click', () => {
-        const nickname = settingNickname.value.trim();
-        if (!nickname) {
-            settingNickname.style.borderColor = 'rgba(255,80,80,0.6)';
-            settingNickname.focus();
-            setTimeout(() => { settingNickname.style.borderColor = ''; }, 2000);
-            return;
-        }
+        const nickname = settingNickname.value.trim() || '默认用户';
         const current = SettingsManager.load();
         const newSettings = {
             nickname: nickname,
