@@ -129,6 +129,7 @@ const MusicPlayer = {
                 const idx = parseInt(item.dataset.index);
                 if (idx === this.currentTrack) return;
                 this.loadTrack(idx, true);
+                document.getElementById('playlistOverlay').classList.remove('active');
             });
         });
     },
