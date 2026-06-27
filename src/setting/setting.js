@@ -32,7 +32,7 @@ const SettingsManager = {
         return {
             glassEffect: u.glassEffect ?? d.display?.glassEffect ?? true,
             showDock: u.showDock ?? d.display?.showDock ?? true,
-            wallpaper: u.wallpaper || 'default',
+            picture: u.picture || 'default',
             platforms: this.serverPlatforms,
             playlist: u.playlist || d.music?.playlist || []
         };
@@ -42,7 +42,7 @@ const SettingsManager = {
         const data = {
             glassEffect: settings.glassEffect,
             showDock: settings.showDock,
-            wallpaper: settings.wallpaper,
+            picture: settings.picture,
             playlist: settings.playlist
         };
         localStorage.setItem(this.localStorageKey, JSON.stringify(data));
@@ -58,8 +58,8 @@ const SettingsManager = {
         const dock = document.getElementById('bottomDock');
         if (dock) dock.style.display = settings.showDock ? '' : 'none';
 
-        if (settings.wallpaper && settings.wallpaper !== 'default') {
-            document.body.style.backgroundImage = `url("${settings.wallpaper}")`;
+        if (settings.picture && settings.picture !== 'default') {
+            document.body.style.backgroundImage = `url("${settings.picture}")`;
         } else {
             document.body.style.backgroundImage = '';
         }
@@ -72,7 +72,7 @@ const SettingsManager = {
         return {
             glassEffect: s.glassEffect,
             showDock: s.showDock,
-            wallpaper: s.wallpaper,
+            picture: s.picture,
             platforms: s.platforms,
             playlist: s.playlist
         };
@@ -85,15 +85,15 @@ const SettingsManager = {
     }
 };
 
-const WallpaperManager = {
+const PictureManager = {
     grid: null,
-    selectedWallpaper: 'default',
+    selectedPicture: 'default',
     onChange: null,
 
     async init() {
-        this.grid = document.getElementById('wallpaperGrid');
+        this.grid = document.getElementById('pictureGrid');
         const s = SettingsManager.load();
-        this.selectedWallpaper = s.wallpaper || 'default';
+        this.selectedPicture = s.picture || 'default';
         this.renderAll();
         this.bindEvents();
     },
@@ -103,43 +103,43 @@ const WallpaperManager = {
     },
 
     renderAll() {
-        const existing = this.grid.querySelectorAll('.wallpaper-item');
+        const existing = this.grid.querySelectorAll('.picture-item');
         existing.forEach(el => el.remove());
 
         const defaultItem = document.createElement('div');
-        defaultItem.className = 'wallpaper-item' + (this.selectedWallpaper === 'default' ? ' active' : '');
+        defaultItem.className = 'picture-item' + (this.selectedPicture === 'default' ? ' active' : '');
         defaultItem.dataset.src = 'default';
-        defaultItem.innerHTML = `<img src="background.webp" alt="默认"><span class="wallpaper-check">✓</span>`;
+        defaultItem.innerHTML = `<img src="background.webp" alt="默认"><span class="picture-check">✓</span>`;
         this.grid.appendChild(defaultItem);
 
         this.getBuiltinFiles().forEach(file => {
             const src = 'file/picture/' + file;
             const item = document.createElement('div');
-            item.className = 'wallpaper-item' + (this.selectedWallpaper === src ? ' active' : '');
+            item.className = 'picture-item' + (this.selectedPicture === src ? ' active' : '');
             item.dataset.src = src;
-            item.innerHTML = `<img src="${src}" alt="${file}" loading="lazy"><span class="wallpaper-check">✓</span>`;
+            item.innerHTML = `<img src="${src}" alt="${file}" loading="lazy"><span class="picture-check">✓</span>`;
             this.grid.appendChild(item);
         });
     },
 
     updateActiveState() {
-        this.grid.querySelectorAll('.wallpaper-item').forEach(item => {
-            item.classList.toggle('active', item.dataset.src === this.selectedWallpaper);
+        this.grid.querySelectorAll('.picture-item').forEach(item => {
+            item.classList.toggle('active', item.dataset.src === this.selectedPicture);
         });
     },
 
     bindEvents() {
         this.grid.addEventListener('click', (e) => {
-            const item = e.target.closest('.wallpaper-item');
+            const item = e.target.closest('.picture-item');
             if (!item) return;
-            this.selectedWallpaper = item.dataset.src;
+            this.selectedPicture = item.dataset.src;
             this.updateActiveState();
-            if (this.onChange) this.onChange(this.selectedWallpaper);
+            if (this.onChange) this.onChange(this.selectedPicture);
         });
     },
 
     getSelected() {
-        return this.selectedWallpaper;
+        return this.selectedPicture;
     }
 };
 
@@ -148,7 +148,7 @@ async function initSettings() {
     const settingsData = SettingsManager.load();
     SettingsManager.apply(settingsData);
     MusicPlayer.loadConfig();
-    WallpaperManager.init();
+    PictureManager.init();
 
     const settingsBtn = document.getElementById('settingsBtn');
     const settingsOverlay = document.getElementById('settingsOverlay');
@@ -160,8 +160,8 @@ async function initSettings() {
         const s = SettingsManager.load();
         toggleGlass.classList.toggle('active', s.glassEffect);
         toggleDock.classList.toggle('active', s.showDock);
-        WallpaperManager.selectedWallpaper = s.wallpaper || 'default';
-        WallpaperManager.updateActiveState();
+        PictureManager.selectedPicture = s.picture || 'default';
+        PictureManager.updateActiveState();
         settingsOverlay.classList.add('active');
     }
 
@@ -188,9 +188,9 @@ async function initSettings() {
         saveAndApply();
     });
 
-    WallpaperManager.onChange = (wallpaper) => {
+    PictureManager.onChange = (picture) => {
         const current = SettingsManager.current();
-        current.wallpaper = wallpaper;
+        current.picture = picture;
         SettingsManager.applyAndSave(current);
     };
 

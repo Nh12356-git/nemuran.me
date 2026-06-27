@@ -191,7 +191,7 @@
     gap: 0.45rem;
     margin-top: 0.5rem;
 }
-.wallpaper-item {
+.picture-item {
     position: relative;
     aspect-ratio: 16/10;
     border-radius: 10px;
@@ -201,21 +201,21 @@
     transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
     background: rgba(0,0,0,0.2);
 }
-.wallpaper-item img {
+.picture-item img {
     width: 100%; height: 100%; object-fit: cover;
     transition: transform 0.4s ease;
 }
-.wallpaper-item:hover {
+.picture-item:hover {
     border-color: rgba(255,255,255,0.18);
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0,0,0,0.3);
 }
-.wallpaper-item:hover img { transform: scale(1.05); }
-.wallpaper-item.active {
+.picture-item:hover img { transform: scale(1.05); }
+.picture-item.active {
     border-color: rgba(138,180,248,0.6);
     box-shadow: 0 0 0 2px rgba(138,180,248,0.15), 0 4px 15px rgba(138,180,248,0.12);
 }
-.wallpaper-check {
+.picture-check {
     position: absolute; top: 4px; right: 4px;
     width: 18px; height: 18px; border-radius: 50%;
     background: linear-gradient(135deg, rgba(88,150,255,0.85), rgba(138,180,248,0.9));
@@ -224,9 +224,9 @@
     opacity: 0; transition: all 0.3s ease;
     box-shadow: 0 2px 8px rgba(138,180,248,0.25);
 }
-.wallpaper-item.active .wallpaper-check { opacity: 1; transform: scale(1); }
+.picture-item.active .picture-check { opacity: 1; transform: scale(1); }
 
-.wallpaper-upload {
+.picture-upload {
     position: relative;
     aspect-ratio: 16/10;
     border-radius: 10px;
@@ -236,26 +236,26 @@
     cursor: pointer; transition: all 0.3s ease;
     background: rgba(255,255,255,0.015);
 }
-.wallpaper-upload:hover {
+.picture-upload:hover {
     border-color: rgba(138,180,248,0.35);
     background: rgba(138,180,248,0.04);
 }
-.wallpaper-upload-icon {
+.picture-upload-icon {
     font-size: 1.2rem; color: rgba(255,255,255,0.2);
     margin-bottom: 0.1rem; transition: all 0.3s ease;
     line-height: 1;
 }
-.wallpaper-upload:hover .wallpaper-upload-icon {
+.picture-upload:hover .picture-upload-icon {
     color: rgba(138,180,248,0.6);
     transform: scale(1.1);
 }
-.wallpaper-upload-text {
+.picture-upload-text {
     font-size: 0.55rem; color: rgba(255,255,255,0.2);
     transition: color 0.3s ease;
 }
-.wallpaper-upload:hover .wallpaper-upload-text { color: rgba(138,180,248,0.5); }
+.picture-upload:hover .picture-upload-text { color: rgba(138,180,248,0.5); }
 
-.wallpaper-delete {
+.picture-delete {
     position: absolute; top: 4px; left: 4px;
     width: 18px; height: 18px; border-radius: 50%;
     background: rgba(255,50,50,0.8); color: #fff;
@@ -264,8 +264,8 @@
     border: none; z-index: 2;
     box-shadow: 0 2px 6px rgba(255,50,50,0.25);
 }
-.wallpaper-delete:hover { background: rgba(255,50,50,1); transform: scale(1.1); }
-.wallpaper-item:hover .wallpaper-delete { opacity: 1; }
+.picture-delete:hover { background: rgba(255,50,50,1); transform: scale(1.1); }
+.picture-item:hover .picture-delete { opacity: 1; }
 
 @media (max-width: 480px) {
     .settings-panel { width: 100vw; max-width: 100vw; }

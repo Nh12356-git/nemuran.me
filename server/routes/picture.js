@@ -5,12 +5,12 @@ const fs = require('fs');
 const { adminMiddleware } = require('../middleware');
 const { query, run, saveDB } = require('../db/database');
 
-const wallpaperDir = path.join(__dirname, '..', '..', 'file', 'picture');
+const pictureDir = path.join(__dirname, '..', '..', 'file', 'picture');
 
 router.get('/', (req, res) => {
     const db = req.app.locals.db;
-    const wallpapers = query(db, 'SELECT * FROM picture ORDER BY sort_order ASC, id ASC');
-    res.json(wallpapers);
+    const pictures = query(db, 'SELECT * FROM picture ORDER BY sort_order ASC, id ASC');
+    res.json(pictures);
 });
 
 router.post('/', adminMiddleware, (req, res) => {
@@ -29,10 +29,10 @@ router.delete('/:id', adminMiddleware, (req, res) => {
     const db = req.app.locals.db;
     const rows = query(db, 'SELECT * FROM picture WHERE id = ?', [Number(req.params.id)]);
     if (!rows.length) return res.status(404).json({ error: '图片不存在' });
-    const wp = rows[0];
+    const pic = rows[0];
 
     if (req.query.deleteFile === 'true') {
-        const filePath = path.join(wallpaperDir, wp.filename);
+        const filePath = path.join(pictureDir, pic.filename);
         if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
     }
 
@@ -46,13 +46,13 @@ router.put('/:id', adminMiddleware, (req, res) => {
     const { sort_order, is_default } = req.body;
     const rows = query(db, 'SELECT * FROM picture WHERE id = ?', [Number(req.params.id)]);
     if (!rows.length) return res.status(404).json({ error: '图片不存在' });
-    const wp = rows[0];
+    const pic = rows[0];
 
     if (is_default) {
         run(db, 'UPDATE picture SET is_default = 0');
     }
     run(db, 'UPDATE picture SET sort_order = ?, is_default = ? WHERE id = ?',
-        [sort_order ?? wp.sort_order, is_default ? 1 : 0, Number(req.params.id)]);
+        [sort_order ?? pic.sort_order, is_default ? 1 : 0, Number(req.params.id)]);
     saveDB(db);
     res.json({ success: true });
 });

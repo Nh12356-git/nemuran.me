@@ -15,7 +15,7 @@ fs.mkdirSync(pictureDir, { recursive: true });
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        if (req.query.type === 'wallpaper') {
+        if (req.query.type === 'picture') {
             cb(null, pictureDir);
         } else {
             cb(null, musicDir);
@@ -31,7 +31,7 @@ const upload = multer({
     limits: { fileSize: 500 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
         const ext = path.extname(file.originalname).toLowerCase();
-        if (req.query.type === 'wallpaper') {
+        if (req.query.type === 'picture') {
             if (file.mimetype.startsWith('image/') && IMAGE_EXTS.includes(ext)) {
                 cb(null, true);
             } else {
