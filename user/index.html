@@ -142,7 +142,7 @@
     }
 
     async function renderSongs(el) {
-        const songs = await api('/songs') || [];
+        const songs = await api('/music') || [];
         el.innerHTML = `
         <h2>歌曲列表</h2>
         <div class="card"><div class="table-wrap"><table>

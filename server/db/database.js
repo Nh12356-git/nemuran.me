@@ -50,9 +50,6 @@ async function initDB() {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 
-    try { db.run(`INSERT INTO music SELECT * FROM songs`); } catch {}
-    try { db.run(`DROP TABLE IF EXISTS songs`); } catch {}
-
     db.run(`CREATE TABLE IF NOT EXISTS picture (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         filename TEXT NOT NULL,
@@ -60,9 +57,6 @@ async function initDB() {
         sort_order INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
-
-    try { db.run(`INSERT INTO picture SELECT * FROM wallpapers`); } catch {}
-    try { db.run(`DROP TABLE IF EXISTS wallpapers`); } catch {}
 
     db.run(`CREATE TABLE IF NOT EXISTS dock_tools (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
