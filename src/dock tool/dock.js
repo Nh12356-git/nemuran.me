@@ -27,6 +27,7 @@ const DockManager = {
         const el = document.createElement('div');
         el.className = 'dock-item';
         el.dataset.url = tool.url;
+        el.dataset.label = tool.name;
         const iconUrl = tool.icon || this.getIconUrl(tool.url);
         const iconHtml = iconUrl
             ? `<img src="${iconUrl}" alt="${tool.name}" onerror="this.outerHTML='${tool.name.charAt(0)}'" referrerpolicy="no-referrer">`

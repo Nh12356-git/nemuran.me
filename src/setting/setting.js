@@ -32,6 +32,7 @@ const SettingsManager = {
         return {
             glassEffect: u.glassEffect ?? d.display?.glassEffect ?? true,
             showDock: u.showDock ?? d.display?.showDock ?? true,
+            hideDockLabel: u.hideDockLabel ?? false,
             picture: u.picture || 'default',
             platforms: this.serverPlatforms,
             playlist: u.playlist || d.music?.playlist || []
@@ -42,6 +43,7 @@ const SettingsManager = {
         const data = {
             glassEffect: settings.glassEffect,
             showDock: settings.showDock,
+            hideDockLabel: settings.hideDockLabel,
             picture: settings.picture,
             playlist: settings.playlist
         };
@@ -56,7 +58,10 @@ const SettingsManager = {
         });
 
         const dock = document.getElementById('bottomDock');
-        if (dock) dock.style.display = settings.showDock ? '' : 'none';
+        if (dock) {
+            dock.style.display = settings.showDock ? '' : 'none';
+            dock.classList.toggle('dock-label-hidden', settings.hideDockLabel);
+        }
 
         if (settings.picture && settings.picture !== 'default') {
             document.body.style.backgroundImage = `url("${settings.picture}")`;
@@ -72,6 +77,7 @@ const SettingsManager = {
         return {
             glassEffect: s.glassEffect,
             showDock: s.showDock,
+            hideDockLabel: s.hideDockLabel,
             picture: s.picture,
             platforms: s.platforms,
             playlist: s.playlist
@@ -155,11 +161,13 @@ async function initSettings() {
     const settingsClose = document.getElementById('settingsClose');
     const toggleGlass = document.getElementById('toggleGlass');
     const toggleDock = document.getElementById('toggleDock');
+    const toggleDockLabel = document.getElementById('toggleDockLabel');
 
     function openSettings() {
         const s = SettingsManager.load();
         toggleGlass.classList.toggle('active', s.glassEffect);
         toggleDock.classList.toggle('active', s.showDock);
+        toggleDockLabel.classList.toggle('active', s.hideDockLabel);
         PictureManager.selectedPicture = s.picture || 'default';
         PictureManager.updateActiveState();
         settingsOverlay.classList.add('active');
@@ -175,6 +183,7 @@ async function initSettings() {
         const current = SettingsManager.current();
         current.glassEffect = toggleGlass.classList.contains('active');
         current.showDock = toggleDock.classList.contains('active');
+        current.hideDockLabel = toggleDockLabel.classList.contains('active');
         SettingsManager.applyAndSave(current);
     }
 
@@ -185,6 +194,11 @@ async function initSettings() {
 
     toggleDock.addEventListener('click', () => {
         toggleDock.classList.toggle('active');
+        saveAndApply();
+    });
+
+    toggleDockLabel.addEventListener('click', () => {
+        toggleDockLabel.classList.toggle('active');
         saveAndApply();
     });
 
