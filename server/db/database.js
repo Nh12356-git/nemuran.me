@@ -112,6 +112,19 @@ async function initDB() {
         }
     }
 
+    const dockRows = query(db, 'SELECT id FROM dock_tools LIMIT 1');
+    if (dockRows.length === 0) {
+        const defaultDock = [
+            { name: '百度', url: 'https://www.baidu.com', icon: '' },
+            { name: 'GitHub', url: 'https://github.com', icon: '' },
+            { name: 'Gitee', url: 'https://gitee.com', icon: '' },
+        ];
+        defaultDock.forEach((t, i) => {
+            run(db, 'INSERT INTO dock_tools (name, url, icon, sort_order) VALUES (?, ?, ?, ?)',
+                [t.name, t.url, t.icon, i + 1]);
+        });
+    }
+
     saveDB(db);
     _db = db;
     return db;

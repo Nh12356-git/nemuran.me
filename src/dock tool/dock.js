@@ -12,27 +12,6 @@ const DockManager = {
             const res = await fetch('/api/dock');
             if (res.ok) this.tools = await res.json();
         } catch {}
-        if (!this.tools.length) {
-            const defaults = [
-                { name: '百度', url: 'https://www.baidu.com' },
-                { name: 'GitHub', url: 'https://github.com' },
-                { name: 'Gitee', url: 'https://gitee.com' },
-            ];
-            for (const t of defaults) {
-                try {
-                    const res = await fetch('/api/dock', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name: t.name, url: t.url, icon: '' })
-                    });
-                    if (res.ok) await res.json();
-                } catch {}
-            }
-            try {
-                const res = await fetch('/api/dock');
-                if (res.ok) this.tools = await res.json();
-            } catch {}
-        }
     },
 
     getIconUrl(url) {
