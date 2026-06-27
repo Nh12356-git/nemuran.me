@@ -3,9 +3,8 @@ const DockManager = {
     localStorageKey: 'nemuran_settings',
     defaultTools: [
         { name: '百度', url: 'https://www.baidu.com', icon: 'https://www.baidu.com/favicon.ico' },
-        { name: 'Gitee', url: 'https://gitee.com', icon: 'https://gitee.com/favicon.ico' },
         { name: 'GitHub', url: 'https://github.com', icon: 'https://github.com/favicon.ico' },
-        { name: '智慧执教', url: 'https://basic.smartedu.cn', icon: 'https://basic.smartedu.cn/favicon.ico' }
+        { name: 'Gitee', url: 'https://gitee.com', icon: 'https://gitee.com/favicon.ico' },
     ],
 
     async init() {
@@ -47,10 +46,7 @@ const DockManager = {
         const el = document.createElement('div');
         el.className = 'dock-item';
         el.dataset.url = tool.url;
-        const isFavicon = tool.icon && tool.icon.startsWith('http');
-        const iconHtml = isFavicon
-            ? `<img src="${tool.icon}" alt="${tool.name}" onerror="this.style.display='none'">`
-            : (tool.icon || '🌐');
+        const iconHtml = this.createIconHtml(tool);
         el.innerHTML = `<span class="dock-icon">${iconHtml}</span><span class="dock-label">${tool.name}</span>`;
         if (isCustom) {
             const removeBtn = document.createElement('button');
@@ -75,20 +71,36 @@ const DockManager = {
         return el;
     },
 
+    createIconHtml(tool) {
+        if (tool.icon && tool.icon.startsWith('http')) {
+            const fallback = tool.name.charAt(0);
+            return `<img src="${tool.icon}" alt="${tool.name}" onerror="this.outerHTML='${fallback}'" referrerpolicy="no-referrer">`;
+        }
+        return tool.icon || tool.name.charAt(0);
+    },
+
     renderDock() {
         const dock = document.getElementById('bottomDock');
         const addBtn = document.getElementById('dockAddBtn');
         dock.querySelectorAll('.dock-item').forEach(el => el.remove());
         dock.querySelectorAll('.dock-divider').forEach(el => el.remove());
+
         const customTools = this.getCustomDockTools();
+        const hasCustom = customTools.length > 0;
+
         customTools.forEach(tool => {
             dock.insertBefore(this.createToolElement(tool, true), addBtn);
         });
-        if (customTools.length > 0) {
+
+        if (hasCustom) {
             const d = document.createElement('div');
             d.className = 'dock-divider';
             dock.insertBefore(d, addBtn);
         }
+
+        this.defaultTools.forEach(tool => {
+            dock.insertBefore(this.createToolElement(tool, false), addBtn);
+        });
     },
 
     bindEvents() {
