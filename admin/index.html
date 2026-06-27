@@ -358,13 +358,15 @@
         </div></div>
         <div class="card"><div class="table-wrap"><table>
             <thead><tr><th>名称</th><th>URL</th><th>图标</th><th>操作</th></tr></thead>
-            <tbody>${tools.length ? tools.map(t => `
-                <tr><td>${t.name}</td><td style="color:rgba(255,255,255,0.4);font-size:0.75rem;max-width:200px;overflow:hidden;text-overflow:ellipsis">${t.url}</td>
-                <td>${t.icon ? '<img src="'+t.icon+'" style="width:20px;height:20px;border-radius:4px">' : '-'}</td>
+            <tbody>${tools.length ? tools.map(t => {
+                const iconUrl = t.icon || (() => { try { return 'https://' + new URL(t.url).hostname + '/favicon.ico'; } catch { return ''; } })();
+                return `<tr><td>${t.name}</td><td style="color:rgba(255,255,255,0.4);font-size:0.75rem;max-width:200px;overflow:hidden;text-overflow:ellipsis">${t.url}</td>
+                <td>${iconUrl ? '<img src="'+iconUrl+'" style="width:20px;height:20px;border-radius:4px" referrerpolicy="no-referrer">' : '-'}</td>
                 <td class="actions">
                     <button class="btn btn-ghost btn-sm" onclick="editTool(${t.id})">编辑</button>
                     <button class="btn btn-danger btn-sm" onclick="deleteTool(${t.id})">删除</button>
-                </td></tr>`).join('') : '<tr><td colspan="4" class="empty">暂无工具</td></tr>'}
+                </td></tr>`;
+            }).join('') : '<tr><td colspan="4" class="empty">暂无工具</td></tr>'}
             </tbody></table></div></div>`;
     }
 
@@ -372,13 +374,17 @@
         showModal('添加工具', `
             <div class="form-group"><label>工具名称</label><input class="form-input" id="toolName" maxlength="8"></div>
             <div class="form-group"><label>URL</label><input class="form-input" id="toolUrl" placeholder="https://example.com"></div>
-            <div class="form-group"><label>图标URL（可选）</label><input class="form-input" id="toolIcon"></div>
+            <div class="form-group"><label>图标URL <span style="opacity:0.5;font-size:0.75rem">（留空自动获取）</span></label><input class="form-input" id="toolIcon" placeholder="留空则自动获取网站图标"></div>
         `, async () => {
-            const res = await api('/dock', { method: 'POST', body: JSON.stringify({
-                name: document.getElementById('toolName').value,
-                url: document.getElementById('toolUrl').value,
-                icon: document.getElementById('toolIcon').value
-            })});
+            const name = document.getElementById('toolName').value.trim();
+            let url = document.getElementById('toolUrl').value.trim();
+            let icon = document.getElementById('toolIcon').value.trim();
+            if (!name || !url) { toast('请填写名称和URL', 'error'); return; }
+            if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+            if (!icon) {
+                try { icon = 'https://' + new URL(url).hostname + '/favicon.ico'; } catch { icon = ''; }
+            }
+            const res = await api('/dock', { method: 'POST', body: JSON.stringify({ name, url, icon }) });
             if (res?.success) { toast('添加成功'); closeModal(); renderDock(document.getElementById('mainContent')); }
         });
     }
@@ -390,12 +396,17 @@
         showModal('编辑工具', `
             <div class="form-group"><label>名称</label><input class="form-input" id="editToolName" value="${tool.name}"></div>
             <div class="form-group"><label>URL</label><input class="form-input" id="editToolUrl" value="${tool.url}"></div>
-            <div class="form-group"><label>图标URL</label><input class="form-input" id="editToolIcon" value="${tool.icon}"></div>
+            <div class="form-group"><label>图标URL <span style="opacity:0.5;font-size:0.75rem">（留空自动获取）</span></label><input class="form-input" id="editToolIcon" value="${tool.icon}" placeholder="留空则自动获取网站图标"></div>
         `, async () => {
+            let icon = document.getElementById('editToolIcon').value.trim();
+            const url = document.getElementById('editToolUrl').value.trim();
+            if (!icon && url) {
+                try { icon = 'https://' + new URL(url).hostname + '/favicon.ico'; } catch { icon = ''; }
+            }
             await api('/dock/' + id, { method: 'PUT', body: JSON.stringify({
                 name: document.getElementById('editToolName').value,
-                url: document.getElementById('editToolUrl').value,
-                icon: document.getElementById('editToolIcon').value
+                url: url,
+                icon: icon
             })});
             toast('保存成功'); closeModal(); renderDock(document.getElementById('mainContent'));
         });

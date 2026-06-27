@@ -1,69 +1,68 @@
 const DockManager = {
-    config: null,
-    localStorageKey: 'nemuran_settings',
-    defaultTools: [
-        { name: '百度', url: 'https://www.baidu.com', icon: 'https://www.baidu.com/favicon.ico' },
-        { name: 'GitHub', url: 'https://github.com', icon: 'https://github.com/favicon.ico' },
-        { name: 'Gitee', url: 'https://gitee.com', icon: 'https://gitee.com/favicon.ico' },
-    ],
+    tools: [],
 
     async init() {
-        await this.loadConfig();
+        await this.loadTools();
         this.renderDock();
         this.bindEvents();
     },
 
-    async loadConfig() {
+    async loadTools() {
         try {
-            const configResp = await fetch('src/configuration/config.json');
-            this.config = configResp.ok ? await configResp.json() : {};
-            if (this.config.dockTools && this.config.dockTools.length > 0) {
-                this.defaultTools = this.config.dockTools;
-            }
-        } catch {
-            this.config = { dockTools: this.defaultTools };
-        }
-    },
-
-    getCustomDockTools() {
-        try {
-            const saved = JSON.parse(localStorage.getItem(this.localStorageKey) || '{}');
-            return saved.dockTools || [];
-        } catch {
-            return [];
-        }
-    },
-
-    saveCustomDockTools(tools) {
-        try {
-            const saved = JSON.parse(localStorage.getItem(this.localStorageKey) || '{}');
-            saved.dockTools = tools;
-            localStorage.setItem(this.localStorageKey, JSON.stringify(saved));
+            const res = await fetch('/api/dock');
+            if (res.ok) this.tools = await res.json();
         } catch {}
+        if (!this.tools.length) {
+            const defaults = [
+                { name: '百度', url: 'https://www.baidu.com' },
+                { name: 'GitHub', url: 'https://github.com' },
+                { name: 'Gitee', url: 'https://gitee.com' },
+            ];
+            for (const t of defaults) {
+                try {
+                    const res = await fetch('/api/dock', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: t.name, url: t.url, icon: '' })
+                    });
+                    if (res.ok) await res.json();
+                } catch {}
+            }
+            try {
+                const res = await fetch('/api/dock');
+                if (res.ok) this.tools = await res.json();
+            } catch {}
+        }
     },
 
-    createToolElement(tool, isCustom) {
+    getIconUrl(url) {
+        try {
+            const host = new URL(url).hostname;
+            return `https://${host}/favicon.ico`;
+        } catch {
+            return '';
+        }
+    },
+
+    createToolElement(tool) {
         const el = document.createElement('div');
         el.className = 'dock-item';
         el.dataset.url = tool.url;
-        const iconHtml = this.createIconHtml(tool);
+        const iconUrl = tool.icon || this.getIconUrl(tool.url);
+        const iconHtml = iconUrl
+            ? `<img src="${iconUrl}" alt="${tool.name}" onerror="this.outerHTML='${tool.name.charAt(0)}'" referrerpolicy="no-referrer">`
+            : tool.name.charAt(0);
         el.innerHTML = `<span class="dock-icon">${iconHtml}</span><span class="dock-label">${tool.name}</span>`;
-        if (isCustom) {
-            const removeBtn = document.createElement('button');
-            removeBtn.className = 'dock-remove';
-            removeBtn.textContent = '\u00d7';
-            removeBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const tools = this.getCustomDockTools().filter(t => t.url !== tool.url);
-                this.saveCustomDockTools(tools);
-                el.remove();
-                const divider = document.getElementById('bottomDock').querySelector('.dock-divider');
-                if (divider && !document.getElementById('bottomDock').querySelector('.dock-item')) {
-                    divider.remove();
-                }
-            });
-            el.appendChild(removeBtn);
-        }
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'dock-remove';
+        removeBtn.textContent = '\u00d7';
+        removeBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            try { await fetch('/api/dock/' + tool.id, { method: 'DELETE' }); } catch {}
+            this.tools = this.tools.filter(t => t.id !== tool.id);
+            el.remove();
+        });
+        el.appendChild(removeBtn);
         el.addEventListener('click', (e) => {
             if (e.target.classList.contains('dock-remove')) return;
             window.open(tool.url, '_blank');
@@ -71,40 +70,16 @@ const DockManager = {
         return el;
     },
 
-    createIconHtml(tool) {
-        if (tool.icon && tool.icon.startsWith('http')) {
-            const fallback = tool.name.charAt(0);
-            return `<img src="${tool.icon}" alt="${tool.name}" onerror="this.outerHTML='${fallback}'" referrerpolicy="no-referrer">`;
-        }
-        return tool.icon || tool.name.charAt(0);
-    },
-
     renderDock() {
         const dock = document.getElementById('bottomDock');
         const addBtn = document.getElementById('dockAddBtn');
         dock.querySelectorAll('.dock-item').forEach(el => el.remove());
-        dock.querySelectorAll('.dock-divider').forEach(el => el.remove());
-
-        const customTools = this.getCustomDockTools();
-        const hasCustom = customTools.length > 0;
-
-        customTools.forEach(tool => {
-            dock.insertBefore(this.createToolElement(tool, true), addBtn);
-        });
-
-        if (hasCustom) {
-            const d = document.createElement('div');
-            d.className = 'dock-divider';
-            dock.insertBefore(d, addBtn);
-        }
-
-        this.defaultTools.forEach(tool => {
-            dock.insertBefore(this.createToolElement(tool, false), addBtn);
+        this.tools.forEach(tool => {
+            dock.insertBefore(this.createToolElement(tool), addBtn);
         });
     },
 
     bindEvents() {
-        const dock = document.getElementById('bottomDock');
         const addBtn = document.getElementById('dockAddBtn');
         const modal = document.getElementById('dockModal');
         const cancelBtn = document.getElementById('dockCancel');
@@ -126,26 +101,25 @@ const DockManager = {
             if (e.target === modal) modal.classList.remove('active');
         });
 
-        confirmBtn.addEventListener('click', () => {
+        confirmBtn.addEventListener('click', async () => {
             const name = nameInput.value.trim();
             let url = urlInput.value.trim();
             let customIcon = iconInput.value.trim();
             if (!name || !url) return;
             if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
-            const tools = this.getCustomDockTools();
-            if (tools.some(t => t.url === url)) return;
-            let icon;
-            if (customIcon) {
-                if (!/^https?:\/\//i.test(customIcon)) customIcon = 'https://' + customIcon;
-                icon = customIcon;
-            } else {
-                try {
-                    const host = new URL(url).hostname;
-                    icon = `https://${host}/favicon.ico`;
-                } catch { icon = '\ud83c\udf10'; }
-            }
-            tools.push({ name, url, icon });
-            this.saveCustomDockTools(tools);
+            if (this.tools.some(t => t.url === url)) return;
+            const icon = customIcon ? customIcon : '';
+            try {
+                const res = await fetch('/api/dock', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, url, icon })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    this.tools.push({ id: data.id, name, url, icon });
+                }
+            } catch {}
             modal.classList.remove('active');
             this.renderDock();
         });
