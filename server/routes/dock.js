@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { authMiddleware } = require('../middleware');
+const { adminMiddleware } = require('../middleware');
 const { query, run, saveDB } = require('../db/database');
 
 router.get('/', (req, res) => {
@@ -9,7 +9,7 @@ router.get('/', (req, res) => {
     res.json(tools);
 });
 
-router.post('/', authMiddleware, (req, res) => {
+router.post('/', adminMiddleware, (req, res) => {
     const db = req.app.locals.db;
     const { name, url, icon } = req.body;
     if (!name || !url) return res.status(400).json({ error: '名称和URL必填' });
@@ -22,7 +22,7 @@ router.post('/', authMiddleware, (req, res) => {
     res.json({ id: inserted[0].id, success: true });
 });
 
-router.put('/:id', authMiddleware, (req, res) => {
+router.put('/:id', adminMiddleware, (req, res) => {
     const db = req.app.locals.db;
     const { name, url, icon, sort_order } = req.body;
     const rows = query(db, 'SELECT * FROM dock_tools WHERE id = ?', [Number(req.params.id)]);
@@ -35,14 +35,14 @@ router.put('/:id', authMiddleware, (req, res) => {
     res.json({ success: true });
 });
 
-router.delete('/:id', authMiddleware, (req, res) => {
+router.delete('/:id', adminMiddleware, (req, res) => {
     const db = req.app.locals.db;
     run(db, 'DELETE FROM dock_tools WHERE id = ?', [Number(req.params.id)]);
     saveDB(db);
     res.json({ success: true });
 });
 
-router.post('/reorder', authMiddleware, (req, res) => {
+router.post('/reorder', adminMiddleware, (req, res) => {
     const db = req.app.locals.db;
     const { order } = req.body;
     if (!Array.isArray(order)) return res.status(400).json({ error: '无效数据' });

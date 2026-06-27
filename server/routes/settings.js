@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { authMiddleware } = require('../middleware');
+const { adminMiddleware } = require('../middleware');
 const { query, run, saveDB } = require('../db/database');
 
 router.get('/', (req, res) => {
@@ -11,7 +11,7 @@ router.get('/', (req, res) => {
     res.json(settings);
 });
 
-router.put('/', authMiddleware, (req, res) => {
+router.put('/', adminMiddleware, (req, res) => {
     const db = req.app.locals.db;
     for (const [k, v] of Object.entries(req.body)) {
         run(db, 'INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', [k, String(v)]);

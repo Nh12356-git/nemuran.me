@@ -1,5 +1,5 @@
 file/music/
+file/picture/
 node_modules/
 server/db/nemuran.db
 package-lock.json
-pending_deletions.json

@@ -8,10 +8,9 @@
 - 实时时钟与日期显示（年月日 + 星期）
 - 音乐播放器
   - 歌单列表弹窗，点击切换歌曲
-  - 每次刷新自动从 MP3 内嵌标签读取标题、歌手、封面
-  - LRC 歌词同步滚动 / MP3 内嵌歌词自动识别
+  - LRC 歌词同步滚动
   - 进度条点击 + 拖拽
-  - 歌名/歌手鼠标悬停从左向右滚动显示完整名称
+  - 歌名/歌手鼠标悬停滚动显示完整名称
   - 播放结束自动下一首
   - 键盘快捷键（空格=播放暂停，←→=快进快退5秒）
 - 自适应底栏工具导航（自定义添加/悬浮移除）
@@ -19,8 +18,8 @@
 - 响应式布局（桌面/平板/手机）
 
 ### 后台管理系统
-- 歌曲管理（添加/编辑/删除，含文件删除）
-- 壁纸管理（上传/删除/设置默认）
+- 歌曲管理（上传/编辑/删除，含文件删除）
+- 图片管理（上传/删除/预览放大/滚轮缩放/拖拽移动）
 - 底栏工具管理（添加/编辑/删除/排序）
 - 站点设置（标题/昵称/毛玻璃/底栏开关）
 
@@ -30,13 +29,12 @@
 - HTML5
 - CSS3（毛玻璃、动画、响应式）
 - Vanilla JavaScript（零框架依赖）
-- jsmediatags（读取 MP3 内嵌元数据）
 
 ### 后端
 - Node.js + Express
 - sql.js（纯 JS SQLite 数据库，无需编译）
 - JWT 认证
-- Multer（文件上传）
+- Multer（文件上传，支持图片/音频类型校验）
 
 ## 项目结构
 
@@ -49,29 +47,31 @@ nemuran.me/
 │   ├── index.js                        # Express 服务入口
 │   ├── middleware.js                    # JWT 认证中间件
 │   ├── db/
-│   │   ├── database.js                 # 数据库初始化（sql.js）
-│   │   └── nemuran.db                  # SQLite 数据库文件
+│   │   ├── database.js                 # 数据库初始化与自动扫描导入
+│   │   └── nemuran.db                  # SQLite 数据库文件（gitignore）
 │   └── routes/
-│       ├── auth.js                     # 登录/改密接口
+│       ├── auth.js                     # 登录/注册/改密接口
 │       ├── settings.js                 # 站点设置 API
-│       ├── songs.js                    # 歌曲 CRUD API
-│       ├── wallpapers.js               # 壁纸管理 API
+│       ├── music.js                    # 歌曲 CRUD API
+│       ├── picture.js                  # 图片管理 API
 │       ├── dock.js                     # 底栏工具 API
-│       └── upload.js                   # 文件上传 API
+│       └── upload.js                   # 文件上传 API（图片/音频）
 ├── admin/
 │   └── index.html                      # 后台管理页面（SPA）
+├── user/
+│   └── index.html                      # 用户中心页面
+├── login/
+│   └── index.html                      # 登录/注册页面
 ├── src/
+│   ├── configuration/config.json       # 默认配置（fallback）
 │   ├── dock tool/                      # 底栏组件
 │   ├── music card/                     # 音乐播放器组件
 │   ├── setting/                        # 设置面板组件
 │   ├── imgs/favicon_io/                # 网站图标
 │   └── js/jsmediatags.min.js           # MP3 元数据读取库
-└── file/
-    ├── music/                          # 音乐文件目录
-    │   └── 歌手名 - 歌曲名/
-    │       ├── *.mp3
-    │       └── lyrics.lrc
-    └── picture/                        # 壁纸图片目录
+└── file/                               # 上传文件目录（gitignore）
+    ├── music/                          # 音乐文件
+    └── picture/                        # 图片文件
 ```
 
 ## 快速开始
@@ -92,39 +92,45 @@ npm start
 
 - 前台：http://localhost:3000
 - 后台：http://localhost:3000/admin
-- 默认账号：`admin` / `admin123`
+- 默认账号：`admin` / `123456`
 
 ## API 接口
 
 | 方法 | 路径 | 说明 | 需认证 |
 |------|------|------|--------|
-| POST | /api/login | 登录 | ❌ |
+| POST | /api/auth/login | 登录 | ❌ |
+| POST | /api/auth/register | 注册 | ❌ |
+| GET | /api/auth/me | 获取当前用户 | ✅ |
+| PUT | /api/auth/me | 更新用户信息 | ✅ |
+| POST | /api/auth/change-password | 修改密码 | ✅ |
 | GET | /api/settings | 获取站点设置 | ❌ |
 | PUT | /api/settings | 更新站点设置 | ✅ |
-| GET | /api/songs | 获取歌曲列表 | ❌ |
-| POST | /api/songs | 添加歌曲 | ✅ |
-| PUT | /api/songs/:id | 编辑歌曲 | ✅ |
-| DELETE | /api/songs/:id | 删除歌曲 | ✅ |
-| GET | /api/songs/:id/lyrics | 获取歌词 | ❌ |
-| PUT | /api/songs/:id/lyrics | 更新歌词 | ✅ |
-| GET | /api/wallpapers | 获取壁纸列表 | ❌ |
-| POST | /api/wallpapers | 添加壁纸 | ✅ |
-| DELETE | /api/wallpapers/:id | 删除壁纸 | ✅ |
+| GET | /api/music | 获取歌曲列表 | ❌ |
+| POST | /api/music | 添加歌曲 | ✅ |
+| GET | /api/music/:id | 获取歌曲详情 | ❌ |
+| PUT | /api/music/:id | 编辑歌曲 | ✅ |
+| DELETE | /api/music/:id | 删除歌曲 | ✅ |
+| GET | /api/music/:id/lyrics | 获取歌词 | ❌ |
+| PUT | /api/music/:id/lyrics | 更新歌词 | ✅ |
+| GET | /api/picture | 获取图片列表 | ❌ |
+| POST | /api/picture | 注册图片 | ✅ |
+| PUT | /api/picture/:id | 更新图片 | ✅ |
+| DELETE | /api/picture/:id | 删除图片 | ✅ |
 | GET | /api/dock | 获取底栏工具 | ❌ |
 | POST | /api/dock | 添加工具 | ✅ |
 | PUT | /api/dock/:id | 编辑工具 | ✅ |
 | DELETE | /api/dock/:id | 删除工具 | ✅ |
 | POST | /api/upload/music | 上传音乐文件 | ✅ |
-| POST | /api/upload/wallpaper | 上传壁纸 | ✅ |
+| POST | /api/upload/picture | 上传图片 | ✅ |
 
 ## 数据库表
 
 | 表名 | 说明 |
 |------|------|
-| users | 管理员账号 |
+| users | 用户账号 |
 | settings | 站点设置（key-value） |
-| songs | 歌曲信息 |
-| wallpapers | 壁纸列表 |
+| music | 歌曲信息 |
+| picture | 图片列表 |
 | dock_tools | 底栏工具 |
 
 ## 部署

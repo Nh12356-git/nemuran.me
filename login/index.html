@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>nemuran.me - 登录</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="../src/imgs/favicon_io/favicon-32x32.png">
+    <link rel="shortcut icon" href="../src/imgs/favicon_io/favicon.ico">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+        body {
+            min-height: 100vh; background: #0f0f1a; color: #e0e0e0;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .login-page { width: 100%; max-width: 400px; padding: 1.5rem; }
+        .login-box {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px; padding: 2.5rem; backdrop-filter: blur(20px);
+        }
+        .login-box h2 { text-align: center; margin-bottom: 0.5rem; font-size: 1.2rem; color: rgba(255,255,255,0.9); }
+        .login-subtitle { text-align: center; font-size: 0.8rem; color: rgba(255,255,255,0.35); margin-bottom: 2rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-size: 0.78rem; color: rgba(255,255,255,0.5); margin-bottom: 0.3rem; }
+        .form-input {
+            width: 100%; padding: 0.65rem 0.85rem; background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;
+            color: #fff; font-size: 0.85rem; outline: none; transition: all 0.3s;
+        }
+        .form-input:focus { border-color: rgba(138,180,248,0.4); box-shadow: 0 0 0 3px rgba(138,180,248,0.08); }
+        .form-input::placeholder { color: rgba(255,255,255,0.2); }
+        .btn {
+            width: 100%; padding: 0.65rem; border-radius: 10px; border: none;
+            font-size: 0.85rem; cursor: pointer; transition: all 0.25s; font-weight: 500;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, rgba(88,150,255,0.6), rgba(138,180,248,0.7));
+            color: #fff; margin-top: 0.5rem;
+        }
+        .btn-primary:hover { background: linear-gradient(135deg, rgba(88,150,255,0.8), rgba(138,180,248,0.9)); }
+        .switch-text {
+            text-align: center; margin-top: 1.2rem; font-size: 0.8rem; color: rgba(255,255,255,0.4);
+        }
+        .switch-text a { color: rgba(138,180,248,0.8); text-decoration: none; cursor: pointer; }
+        .switch-text a:hover { color: rgba(138,180,248,1); }
+        .toast {
+            position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+            padding: 0.7rem 1.2rem; border-radius: 10px; font-size: 0.82rem; z-index: 999;
+            animation: slideIn 0.3s ease;
+        }
+        .toast-success { background: rgba(60,180,80,0.9); color: #fff; }
+        .toast-error { background: rgba(255,60,60,0.9); color: #fff; }
+        @keyframes slideIn { from { transform: translateX(-50%) translateY(20px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
+        .form-hidden { display: none; }
+        .back-link { text-align: center; margin-top: 1.5rem; }
+        .back-link a { color: rgba(255,255,255,0.3); text-decoration: none; font-size: 0.78rem; transition: color 0.3s; }
+        .back-link a:hover { color: rgba(255,255,255,0.6); }
+        .links-row { display: flex; justify-content: center; gap: 1.5rem; margin-top: 1rem; }
+        .links-row a { color: rgba(255,255,255,0.25); text-decoration: none; font-size: 0.75rem; transition: color 0.3s; }
+        .links-row a:hover { color: rgba(255,255,255,0.5); }
+    </style>
+</head>
+<body>
+    <div class="login-page">
+        <div class="login-box">
+            <h2 id="formTitle">登录</h2>
+            <div class="login-subtitle" id="formSubtitle">欢迎回到 nemuran.me</div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>用户名</label>
+                    <input class="form-input" id="loginUser" placeholder="请输入用户名" maxlength="16" required>
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <input class="form-input" id="loginPass" type="password" placeholder="请输入密码" required>
+                </div>
+                <button type="submit" class="btn btn-primary">登录</button>
+            </form>
+
+            <form id="registerForm" class="form-hidden">
+                <div class="form-group">
+                    <label>用户名</label>
+                    <input class="form-input" id="regUser" placeholder="2-16个字符" maxlength="16" required>
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <input class="form-input" id="regPass" type="password" placeholder="至少6个字符" required>
+                </div>
+                <div class="form-group">
+                    <label>确认密码</label>
+                    <input class="form-input" id="regPass2" type="password" placeholder="再次输入密码" required>
+                </div>
+                <button type="submit" class="btn btn-primary">注册</button>
+            </form>
+
+            <div class="switch-text" id="switchText">
+                还没有账号？<a onclick="showRegister()">立即注册</a>
+            </div>
+
+        <div class="back-link">
+            <a href="/">← 返回首页</a>
+        </div>
+    </div>
+
+    <script>
+    const API = window.location.origin + '/api';
+    let isRegister = false;
+
+    function toast(msg, type = 'success') {
+        const el = document.createElement('div');
+        el.className = 'toast toast-' + type;
+        el.textContent = msg;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 2500);
+    }
+
+    function redirectByRole(role) {
+        location.href = '/admin';
+    }
+
+    function showRegister() {
+        isRegister = true;
+        document.getElementById('loginForm').classList.add('form-hidden');
+        document.getElementById('registerForm').classList.remove('form-hidden');
+        document.getElementById('formTitle').textContent = '注册';
+        document.getElementById('formSubtitle').textContent = '创建新账号';
+        document.getElementById('switchText').innerHTML = '已有账号？<a onclick="showLogin()">立即登录</a>';
+    }
+
+    function showLogin() {
+        isRegister = false;
+        document.getElementById('registerForm').classList.add('form-hidden');
+        document.getElementById('loginForm').classList.remove('form-hidden');
+        document.getElementById('formTitle').textContent = '登录';
+        document.getElementById('formSubtitle').textContent = '欢迎回到 nemuran.me';
+        document.getElementById('switchText').innerHTML = '还没有账号？<a onclick="showRegister()">立即注册</a>';
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('loginUser').value.trim();
+        const password = document.getElementById('loginPass').value;
+        if (!username || !password) { toast('请填写完整信息', 'error'); return; }
+        try {
+            const res = await fetch(API + '/auth/login', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            }).then(r => r.json());
+            if (res.token) {
+                localStorage.setItem('user_token', res.token);
+                localStorage.setItem('user_info', JSON.stringify(res.user));
+                toast('登录成功');
+                setTimeout(() => redirectByRole(res.user.role), 800);
+            } else {
+                toast(res.error || '登录失败', 'error');
+            }
+        } catch { toast('网络错误', 'error'); }
+    });
+
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('regUser').value.trim();
+        const password = document.getElementById('regPass').value;
+        const password2 = document.getElementById('regPass2').value;
+        if (!username || !password) { toast('请填写完整信息', 'error'); return; }
+        if (password !== password2) { toast('两次密码不一致', 'error'); return; }
+        try {
+            const res = await fetch(API + '/auth/register', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            }).then(r => r.json());
+            if (res.token) {
+                localStorage.setItem('user_token', res.token);
+                localStorage.setItem('user_info', JSON.stringify(res.user));
+                toast('注册成功');
+                setTimeout(() => redirectByRole(res.user.role), 800);
+            } else {
+                toast(res.error || '注册失败', 'error');
+            }
+        } catch { toast('网络错误', 'error'); }
+    });
+
+    document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('loginForm').requestSubmit(); });
+    document.getElementById('regPass2').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('registerForm').requestSubmit(); });
+    </script>
+</body>
+</html>

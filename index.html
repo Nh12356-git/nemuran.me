@@ -158,18 +158,6 @@
         </div>
 
         <div class="settings-section">
-            <div class="settings-section-title">站点信息</div>
-            <div class="settings-item settings-item-col">
-                <div class="settings-item-label">你的昵称</div>
-                <input class="settings-input" id="settingNickname" placeholder="请输入你的昵称" maxlength="20">
-            </div>
-            <div class="settings-item settings-item-col">
-                <div class="settings-item-label">站点标题</div>
-                <input class="settings-input" id="settingSiteTitle" placeholder="nemuran.me" maxlength="20">
-            </div>
-        </div>
-
-        <div class="settings-section">
             <div class="settings-section-title">显示</div>
             <div class="settings-item">
                 <div>
@@ -195,61 +183,16 @@
                     <span class="wallpaper-check">✓</span>
                 </div>
             </div>
-            <input type="file" id="wallpaperUploadInput" accept="image/*" multiple style="display:none;">
         </div>
 
-        <div class="settings-section">
-            <button class="settings-advanced-btn" id="goAdvanced">
-                高级设置
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
-        </div>
-
-        <div class="settings-section">
-            <button class="settings-btn-action settings-btn-primary" id="settingsSave">保存设置</button>
+        <div class="settings-section" id="loginSection">
+            <a href="/login" class="settings-btn-action settings-btn-login" id="loginBtn" style="display:flex;align-items:center;justify-content:center;text-decoration:none;gap:6px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                登录 / 注册
+            </a>
         </div>
 
         <div class="settings-version"><a href="https://github.com/Nh12356-git/nemuran.me" target="_blank" style="color:rgba(255,255,255,0.2);text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='rgba(255,255,255,0.4)'" onmouseout="this.style.color='rgba(255,255,255,0.2)'">nemuran.me v1.0 · GitHub</a></div>
-    </div>
-</div>
-
-<div class="advanced-modal-overlay" id="advancedOverlay">
-    <div class="advanced-modal">
-        <div class="settings-panel-header">
-            <h3>高级设置</h3>
-            <button class="settings-close" id="advancedClose">&times;</button>
-        </div>
-
-        <div class="settings-section">
-            <div class="settings-section-title">播放源链接</div>
-            <div class="settings-item settings-item-col">
-                <div class="settings-item-desc">点击歌曲跳转的平台地址</div>
-                <div class="platform-inputs">
-                    <div class="platform-input-row">
-                        <span class="platform-label">网易云</span>
-                        <input class="settings-input" id="settingNetease" placeholder="https://music.163.com/...">
-                    </div>
-                    <div class="platform-input-row">
-                        <span class="platform-label">QQ音乐</span>
-                        <input class="settings-input" id="settingQQ" placeholder="https://y.qq.com/...">
-                    </div>
-                    <div class="platform-input-row">
-                        <span class="platform-label">Bilibili</span>
-                        <input class="settings-input" id="settingBilibili" placeholder="https://www.bilibili.com/...">
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="settings-section">
-            <div class="settings-section-title">数据管理</div>
-            <div class="data-btn-row">
-                <button class="settings-btn-action" id="settingsExport">导出配置</button>
-                <button class="settings-btn-action" id="settingsImport">导入配置</button>
-            </div>
-            <input type="file" id="importFileInput" accept=".json" style="display:none;">
-            <button class="settings-btn-action settings-btn-danger" id="settingsReset">重置所有设置</button>
-        </div>
     </div>
 </div>
 
@@ -258,9 +201,9 @@
         <div class="date-info" id="date"></div>
         <div class="clock-display" id="clock"></div>
     </div>
-    <div class="glass-card site-intro">
-        <h3>关于本站</h3>
-        <p>由 空气喵 创建的网站</p>
+    <div class="glass-card site-intro" id="siteIntro">
+        <h3 id="introTitle">关于本站</h3>
+        <p id="introDesc">由 空气喵 创建的网站</p>
     </div>
     <div class="glass-card music-card">
         <div class="music-top">
@@ -370,6 +313,29 @@
 
     // Init Settings
     initSettings();
+
+    // Load user profile
+    async function loadUserProfile() {
+        const token = localStorage.getItem('user_token');
+        if (!token) return;
+        try {
+            const res = await fetch('/api/auth/me', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                const user = data.user;
+                if (user) {
+                    document.getElementById('introTitle').textContent = user.username;
+                    document.getElementById('introDesc').textContent = user.bio || '这个人很懒，什么都没写~';
+                }
+            } else {
+                localStorage.removeItem('user_token');
+                localStorage.removeItem('user_info');
+            }
+        } catch {}
+    }
+    loadUserProfile();
 </script>
 
 </body>

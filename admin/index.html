@@ -8,10 +8,6 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: system-ui, -apple-system, sans-serif; background: #0f0f1a; color: #e0e0e0; min-height: 100vh; }
 
-        .login-page { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-        .login-box { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 2.5rem; width: 360px; backdrop-filter: blur(20px); }
-        .login-box h2 { text-align: center; margin-bottom: 1.5rem; font-size: 1.2rem; color: rgba(255,255,255,0.9); }
-
         .layout { display: flex; min-height: 100vh; }
         .sidebar { width: 220px; background: rgba(18,18,32,0.95); border-right: 1px solid rgba(255,255,255,0.06); padding: 1.5rem 0; flex-shrink: 0; position: fixed; height: 100vh; overflow-y: auto; }
         .sidebar h3 { padding: 0 1.2rem; font-size: 0.9rem; color: rgba(138,180,248,0.8); margin-bottom: 1rem; }
@@ -65,12 +61,18 @@
         @media (max-width: 768px) { .sidebar { display: none; } .main { margin-left: 0; } .grid-2 { grid-template-columns: 1fr; } }
 
         textarea.form-input { min-height: 120px; resize: vertical; font-family: monospace; font-size: 0.8rem; }
-        .wallpaper-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.8rem; }
-        .wallpaper-thumb { aspect-ratio: 16/10; border-radius: 10px; overflow: hidden; border: 2px solid rgba(255,255,255,0.06); cursor: pointer; position: relative; transition: all 0.25s; }
-        .wallpaper-thumb:hover { border-color: rgba(138,180,248,0.4); }
-        .wallpaper-thumb img { width: 100%; height: 100%; object-fit: cover; }
-        .wallpaper-thumb .wp-actions { position: absolute; top: 4px; right: 4px; display: flex; gap: 4px; opacity: 0; transition: opacity 0.2s; }
-        .wallpaper-thumb:hover .wp-actions { opacity: 1; }
+        .picture-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.8rem; }
+        .picture-thumb { aspect-ratio: 16/10; border-radius: 10px; overflow: hidden; border: 2px solid rgba(255,255,255,0.06); cursor: pointer; position: relative; transition: all 0.25s; }
+        .picture-thumb:hover { border-color: rgba(138,180,248,0.4); }
+        .picture-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .picture-thumb .wp-actions { position: absolute; top: 4px; right: 4px; display: flex; gap: 4px; opacity: 0; transition: opacity 0.2s; }
+        .picture-thumb:hover .wp-actions { opacity: 1; }
+
+        .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 200; cursor: pointer; animation: fadeIn 0.2s ease; }
+        .lightbox img { max-width: 90vw; max-height: 90vh; border-radius: 8px; box-shadow: 0 8px 40px rgba(0,0,0,0.5); object-fit: contain; }
+        .lightbox-close { position: absolute; top: 1rem; right: 1.5rem; color: #fff; font-size: 2rem; cursor: pointer; opacity: 0.7; transition: opacity 0.2s; }
+        .lightbox-close:hover { opacity: 1; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -78,7 +80,8 @@
 
     <script>
     const API = window.location.origin + '/api';
-    let token = localStorage.getItem('admin_token');
+    let token = localStorage.getItem('user_token');
+    let userInfo = null;
     let currentPage = 'songs';
 
     function api(path, opts = {}) {
@@ -86,7 +89,8 @@
         if (token) headers['Authorization'] = 'Bearer ' + token;
         return fetch(API + path, { ...opts, headers: { ...headers, ...opts.headers } })
             .then(async r => {
-                if (r.status === 401) { token = null; localStorage.removeItem('admin_token'); render(); return null; }
+                if (r.status === 401) { token = null; userInfo = null; localStorage.removeItem('user_token'); location.href = '/login'; return null; }
+                if (r.status === 403) { toast('权限不足', 'error'); return null; }
                 return r.json();
             });
     }
@@ -99,52 +103,43 @@
         setTimeout(() => el.remove(), 2500);
     }
 
-    function render() {
+    async function render() {
         const app = document.getElementById('app');
-        if (!token) { renderLogin(app); return; }
-        renderLayout(app);
-    }
-
-    function renderLogin(app) {
-        app.innerHTML = `
-        <div class="login-page">
-            <div class="login-box">
-                <h2>nemuran.me 后台管理</h2>
-                <div class="form-group"><label>用户名</label><input class="form-input" id="loginUser" value="admin"></div>
-                <div class="form-group"><label>密码</label><input class="form-input" id="loginPass" type="password" placeholder="请输入密码"></div>
-                <div style="margin-top:1rem"><button class="btn btn-primary" style="width:100%" onclick="doLogin()">登录</button></div>
-            </div>
-        </div>`;
-        document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-    }
-
-    async function doLogin() {
-        const username = document.getElementById('loginUser').value;
-        const password = document.getElementById('loginPass').value;
-        const res = await fetch(API + '/login', {
-            method: 'POST', headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({ username, password })
-        }).then(r => r.json());
-        if (res.token) {
-            token = res.token;
-            localStorage.setItem('admin_token', token);
-            render();
-        } else {
-            toast(res.error || '登录失败', 'error');
+        if (!token) { location.href = '/login'; return; }
+        try {
+            const res = await fetch(API + '/auth/me', { headers: { 'Authorization': 'Bearer ' + token } }).then(r => r.json());
+            if (!res.user) {
+                token = null;
+                localStorage.removeItem('user_token');
+                location.href = '/login';
+                return;
+            }
+            userInfo = res.user;
+            renderLayout(app);
+        } catch {
+            token = null;
+            localStorage.removeItem('user_token');
+            location.href = '/login';
         }
     }
 
     function renderLayout(app) {
-        const pages = [
+        const isAdmin = userInfo?.role === 'admin';
+        const pages = isAdmin ? [
             { id: 'songs', icon: '♫', label: '歌曲管理' },
-            { id: 'wallpapers', icon: '🖼', label: '壁纸管理' },
+            { id: 'wallpapers', icon: '🖼', label: '图片管理' },
             { id: 'dock', icon: '📌', label: '底栏工具' },
             { id: 'settings', icon: '⚙', label: '站点设置' },
+            { id: 'profile', icon: '👤', label: '个人资料' },
+        ] : [
+            { id: 'songs', icon: '♫', label: '歌曲列表' },
+            { id: 'profile', icon: '👤', label: '个人资料' },
         ];
+        const roleLabel = isAdmin ? '管理员' : '用户';
         app.innerHTML = `
         <div class="layout">
             <div class="sidebar">
-                <h3>nemuran.me</h3>
+                <h3>nemuran.me <span style="font-size:0.7rem;opacity:0.5">${roleLabel}</span></h3>
                 ${pages.map(p => `<a href="#" class="${p.id === currentPage ? 'active' : ''}" onclick="navigate('${p.id}');return false;">${p.icon} ${p.label}</a>`).join('')}
                 <div class="sidebar-footer">
                     <a href="/" target="_blank">🌐 查看网站</a>
@@ -157,23 +152,26 @@
     }
 
     function navigate(page) { currentPage = page; renderLayout(document.getElementById('app')); }
-    function logout() { token = null; localStorage.removeItem('admin_token'); render(); }
+    function logout() { token = null; userInfo = null; localStorage.removeItem('user_token'); location.href = '/login'; }
 
     async function renderPage() {
         const main = document.getElementById('mainContent');
         switch (currentPage) {
             case 'songs': return renderSongs(main);
-            case 'wallpapers': return renderWallpapers(main);
+            case 'wallpapers': return renderPictures(main);
             case 'dock': return renderDock(main);
             case 'settings': return renderSettings(main);
+            case 'profile': return renderProfile(main);
         }
     }
 
     async function renderSongs(el) {
-        const songs = await api('/songs') || [];
-        el.innerHTML = `
+        const songs = await api('/music') || [];
+        const isAdmin = userInfo?.role === 'admin';
+        if (isAdmin) {
+            el.innerHTML = `
         <div class="card-header"><h2>歌曲管理</h2><div class="actions">
-            <button class="btn btn-primary btn-sm" onclick="showAddSong()">+ 添加歌曲</button>
+            <button class="btn btn-primary btn-sm" onclick="uploadMusic()">+ 上传音乐</button>
         </div></div>
         <div class="card"><div class="table-wrap"><table>
             <thead><tr><th>ID</th><th>歌名</th><th>歌手</th><th>文件夹</th><th>操作</th></tr></thead>
@@ -184,32 +182,55 @@
                     <button class="btn btn-danger btn-sm" onclick="deleteSong(${s.id},'${s.title.replace(/'/g,"\\'")}')">删除</button>
                 </td></tr>`).join('') : '<tr><td colspan="5" class="empty">暂无歌曲</td></tr>'}
             </tbody></table></div></div>`;
+        } else {
+            el.innerHTML = `
+        <h2>歌曲列表</h2>
+        <div class="card"><div class="table-wrap"><table>
+            <thead><tr><th>#</th><th>歌名</th><th>歌手</th></tr></thead>
+            <tbody>${songs.length ? songs.map((s, i) => `
+                <tr><td>${i + 1}</td><td>${s.title}</td><td style="color:rgba(255,255,255,0.5)">${s.artist}</td></tr>`
+            ).join('') : '<tr><td colspan="3" class="empty">暂无歌曲</td></tr>'}
+            </tbody></table></div></div>`;
+        }
     }
 
-    async function showAddSong() {
-        showModal('添加歌曲', `
-            <div class="form-group"><label>歌曲文件夹名</label><input class="form-input" id="songFolder" placeholder="与 file/music/ 下的文件夹名一致"></div>
-            <div class="form-group"><label>歌名（留空自动读取MP3标签）</label><input class="form-input" id="songTitle"></div>
-            <div class="form-group"><label>歌手（留空自动读取MP3标签）</label><input class="form-input" id="songArtist"></div>
-        `, async () => {
-            const res = await api('/songs', { method: 'POST', body: JSON.stringify({
-                folder: document.getElementById('songFolder').value,
-                title: document.getElementById('songTitle').value,
-                artist: document.getElementById('songArtist').value
-            })});
-            if (res?.success) { toast('添加成功'); closeModal(); renderSongs(document.getElementById('mainContent')); }
-            else toast(res?.error || '添加失败', 'error');
-        });
+    function uploadMusic() {
+        const input = document.createElement('input');
+        input.type = 'file'; input.accept = '.mp3,.flac,.wav,.ogg,.aac,.m4a,.wma'; input.multiple = true;
+        input.onchange = async () => {
+            const files = input.files;
+            if (!files.length) return;
+            try {
+                const fd = new FormData();
+                for (const file of files) fd.append('files', file);
+                const uploadRes = await fetch(API + '/upload/music', {
+                    method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, body: fd
+                });
+                const uploadData = await uploadRes.json();
+                if (!uploadData.success) {
+                    toast(uploadData.error || '上传失败', 'error');
+                    return;
+                }
+                for (const f of uploadData.files) {
+                    await api('/music', { method: 'POST', body: JSON.stringify({ folder: f.folder, filename: f.filename }) });
+                }
+                toast('上传成功，共 ' + uploadData.files.length + ' 首');
+                renderSongs(document.getElementById('mainContent'));
+            } catch (e) {
+                toast('上传出错: ' + e.message, 'error');
+            }
+        };
+        input.click();
     }
 
     async function editSong(id) {
-        const song = await api('/songs/' + id);
+        const song = await api('/music/' + id);
         if (!song) return;
         showModal('编辑歌曲', `
             <div class="form-group"><label>歌名</label><input class="form-input" id="editTitle" value="${song.title}"></div>
             <div class="form-group"><label>歌手</label><input class="form-input" id="editArtist" value="${song.artist}"></div>
         `, async () => {
-            const res = await api('/songs/' + id, { method: 'PUT', body: JSON.stringify({
+            const res = await api('/music/' + id, { method: 'PUT', body: JSON.stringify({
                 title: document.getElementById('editTitle').value,
                 artist: document.getElementById('editArtist').value
             })});
@@ -219,52 +240,114 @@
 
     async function deleteSong(id, title) {
         if (!confirm(`确定删除「${title}」？`)) return;
-        const res = await api('/songs/' + id + '?deleteFile=true', { method: 'DELETE' });
+        const res = await api('/music/' + id + '?deleteFile=true', { method: 'DELETE' });
         if (res?.success) { toast('已删除'); renderSongs(document.getElementById('mainContent')); }
     }
 
-    async function renderWallpapers(el) {
-        const wallpapers = await api('/wallpapers') || [];
+    async function renderPictures(el) {
+        const wallpapers = await api('/picture') || [];
         el.innerHTML = `
-        <div class="card-header"><h2>壁纸管理</h2><div class="actions">
-            <button class="btn btn-primary btn-sm" onclick="uploadWallpaper()">+ 上传壁纸</button>
+        <div class="card-header"><h2>图片管理</h2><div class="actions">
+            <button class="btn btn-primary btn-sm" onclick="uploadPicture()">+ 上传图片</button>
         </div></div>
-        <div class="card"><div class="wallpaper-grid">
+        <div class="card"><div class="picture-grid">
             ${wallpapers.length ? wallpapers.map(w => `
-                <div class="wallpaper-thumb">
-                    <img src="file/picture/${w.filename}" alt="${w.filename}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 160 100%22><rect fill=%22%23333%22 width=%22160%22 height=%22100%22/><text x=%2280%22 y=%2255%22 font-size=%2212%22 fill=%22%23666%22 text-anchor=%22middle%22>加载失败</text></svg>'">
+                <div class="picture-thumb">
+                    <img src="/file/picture/${w.filename}" alt="${w.filename}" onclick="previewPicture('/file/picture/${w.filename}')" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 160 100%22><rect fill=%22%23333%22 width=%22160%22 height=%22100%22/><text x=%2280%22 y=%2255%22 font-size=%2212%22 fill=%22%23666%22 text-anchor=%22middle%22>加载失败</text></svg>'">
                     <div class="wp-actions">
                         ${w.is_default ? '<span style="background:rgba(138,180,248,0.8);color:#fff;padding:2px 6px;border-radius:4px;font-size:0.65rem">默认</span>' : ''}
-                        <button class="btn btn-danger btn-sm" onclick="deleteWallpaper(${w.id},'${w.filename}')">删除</button>
+                        <button class="btn btn-danger btn-sm" onclick="deletePicture(${w.id},'${w.filename}')">删除</button>
                     </div>
                 </div>
-            `).join('') : '<div class="empty">暂无壁纸</div>'}
+            `).join('') : '<div class="empty">暂无图片</div>'}
         </div></div>`;
     }
 
-    function uploadWallpaper() {
+    function uploadPicture() {
         const input = document.createElement('input');
         input.type = 'file'; input.accept = 'image/*';
         input.onchange = async () => {
             const file = input.files[0];
             if (!file) return;
-            const fd = new FormData();
-            fd.append('file', file);
-            const res = await fetch(API + '/upload/wallpaper?type=wallpaper', {
-                method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, body: fd
-            }).then(r => r.json());
-            if (res.success) {
-                await api('/wallpapers', { method: 'POST', body: JSON.stringify({ filename: res.filename }) });
-                toast('上传成功'); renderWallpapers(document.getElementById('mainContent'));
+            try {
+                const fd = new FormData();
+                fd.append('file', file);
+                const uploadRes = await fetch(API + '/upload/picture?type=wallpaper', {
+                    method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, body: fd
+                });
+                const uploadData = await uploadRes.json();
+                if (!uploadData.success) {
+                    toast(uploadData.error || '上传失败', 'error');
+                    return;
+                }
+                const regRes = await api('/picture', { method: 'POST', body: JSON.stringify({ filename: uploadData.filename }) });
+                if (regRes?.success) {
+                    toast('上传成功'); renderPictures(document.getElementById('mainContent'));
+                } else {
+                    toast(regRes?.error || '图片注册失败', 'error');
+                }
+            } catch (e) {
+                toast('上传出错: ' + e.message, 'error');
             }
         };
         input.click();
     }
 
-    async function deleteWallpaper(id, filename) {
-        if (!confirm(`确定删除壁纸「${filename}」？`)) return;
-        const res = await api('/wallpapers/' + id + '?deleteFile=true', { method: 'DELETE' });
-        if (res?.success) { toast('已删除'); renderWallpapers(document.getElementById('mainContent')); }
+    async function deletePicture(id, filename) {
+        if (!confirm(`确定删除图片「${filename}」？`)) return;
+        const res = await api('/picture/' + id + '?deleteFile=true', { method: 'DELETE' });
+        if (res?.success) { toast('已删除'); renderPictures(document.getElementById('mainContent')); }
+    }
+
+    function previewPicture(src) {
+        let scale = 1, panX = 0, panY = 0, dragging = false, startX, startY;
+        const overlay = document.createElement('div');
+        overlay.className = 'lightbox';
+        overlay.innerHTML = `<span class="lightbox-close">&times;</span><img src="${src}">`;
+        const img = overlay.querySelector('img');
+        img.style.transition = 'transform 0.15s ease';
+        function updateTransform() { img.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`; }
+        function onWheel(e) {
+            e.preventDefault();
+            scale = Math.min(Math.max(scale + (e.deltaY > 0 ? -0.1 : 0.1), 0.2), 5);
+            if (scale <= 1) { panX = 0; panY = 0; }
+            updateTransform();
+        }
+        function onMouseDown(e) {
+            if (scale <= 1) return;
+            e.preventDefault();
+            dragging = true;
+            startX = e.clientX - panX;
+            startY = e.clientY - panY;
+            img.style.transition = 'none';
+            img.style.cursor = 'grabbing';
+        }
+        function onMove(e) {
+            if (!dragging) return;
+            panX = e.clientX - startX;
+            panY = e.clientY - startY;
+            updateTransform();
+        }
+        function onUp() {
+            if (!dragging) return;
+            dragging = false;
+            img.style.transition = 'transform 0.15s ease';
+            img.style.cursor = '';
+        }
+        function escHandler(e) { if (e.key === 'Escape') closeOverlay(); }
+        function closeOverlay() {
+            overlay.remove();
+            document.removeEventListener('keydown', escHandler);
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+        }
+        img.addEventListener('wheel', onWheel, { passive: false });
+        img.addEventListener('mousedown', onMouseDown);
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+        document.addEventListener('keydown', escHandler);
+        overlay.addEventListener('click', (e) => { if (e.target === overlay || e.target.classList.contains('lightbox-close')) closeOverlay(); });
+        document.body.appendChild(overlay);
     }
 
     async function renderDock(el) {
@@ -335,6 +418,7 @@
                 <h3 style="font-size:0.85rem;margin-bottom:1rem;color:rgba(255,255,255,0.7)">基本信息</h3>
                 <div class="form-group"><label>站点标题</label><input class="form-input" id="setSiteTitle" value="${s.siteTitle || ''}"></div>
                 <div class="form-group"><label>昵称</label><input class="form-input" id="setNickname" value="${s.nickname || ''}"></div>
+                <div class="form-group"><label>个人介绍</label><input class="form-input" id="setBio" value="${s.bio || ''}" placeholder="展示在首页的个人介绍"></div>
             </div>
             <div class="card">
                 <h3 style="font-size:0.85rem;margin-bottom:1rem;color:rgba(255,255,255,0.7)">显示设置</h3>
@@ -345,6 +429,13 @@
                     <select class="form-input" id="setDock"><option value="true" ${s.showDock==='true'?'selected':''}>显示</option><option value="false" ${s.showDock==='false'?'selected':''}>隐藏</option></select>
                 </div>
             </div>
+        </div>
+        <div class="card" style="margin-top:1rem">
+            <h3 style="font-size:0.85rem;margin-bottom:1rem;color:rgba(255,255,255,0.7)">播放源链接</h3>
+            <div style="font-size:0.75rem;color:rgba(255,255,255,0.35);margin-bottom:0.8rem">点击歌曲跳转的平台地址</div>
+            <div class="form-group"><label>网易云</label><input class="form-input" id="setPlatformNetease" value="${s.platformNetease || ''}" placeholder="https://music.163.com/..."></div>
+            <div class="form-group"><label>QQ音乐</label><input class="form-input" id="setPlatformQQ" value="${s.platformQQ || ''}" placeholder="https://y.qq.com/..."></div>
+            <div class="form-group"><label>Bilibili</label><input class="form-input" id="setPlatformBilibili" value="${s.platformBilibili || ''}" placeholder="https://www.bilibili.com/..."></div>
         </div>`;
     }
 
@@ -352,10 +443,44 @@
         await api('/settings', { method: 'PUT', body: JSON.stringify({
             siteTitle: document.getElementById('setSiteTitle').value,
             nickname: document.getElementById('setNickname').value,
+            bio: document.getElementById('setBio').value,
             glassEffect: document.getElementById('setGlass').value,
-            showDock: document.getElementById('setDock').value
+            showDock: document.getElementById('setDock').value,
+            platformNetease: document.getElementById('setPlatformNetease').value,
+            platformQQ: document.getElementById('setPlatformQQ').value,
+            platformBilibili: document.getElementById('setPlatformBilibili').value
         })});
         toast('设置已保存');
+    }
+
+    async function renderProfile(el) {
+        el.innerHTML = `
+        <div class="card-header"><h2>个人资料</h2></div>
+        <div class="card" style="max-width:480px">
+            <div class="form-group"><label>用户名</label><input class="form-input" id="profUsername" value="${userInfo?.username || ''}"></div>
+            <div class="form-group"><label>个人介绍</label><input class="form-input" id="profBio" value="${userInfo?.bio || ''}" placeholder="介绍一下自己"></div>
+            <div class="form-group"><label>修改密码</label><input class="form-input" id="profOldPass" type="password" placeholder="原密码（不修改密码请留空）"></div>
+            <div class="form-group"><input class="form-input" id="profNewPass" type="password" placeholder="新密码"></div>
+            <button class="btn btn-primary" onclick="saveProfile()">保存</button>
+        </div>`;
+    }
+
+    async function saveProfile() {
+        const username = document.getElementById('profUsername').value.trim();
+        const bio = document.getElementById('profBio').value.trim();
+        const oldPass = document.getElementById('profOldPass').value;
+        const newPass = document.getElementById('profNewPass').value;
+
+        if (username) {
+            const res = await api('/auth/me', { method: 'PUT', body: JSON.stringify({ username, bio }) });
+            if (res?.success) { userInfo = res.user; toast('资料已更新'); }
+        }
+
+        if (oldPass && newPass) {
+            const res = await api('/auth/change-password', { method: 'POST', body: JSON.stringify({ oldPassword: oldPass, newPassword: newPass }) });
+            if (res?.success) toast('密码已修改');
+            else toast(res?.error || '修改失败', 'error');
+        }
     }
 
     let modalCallback = null;
